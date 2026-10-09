@@ -1,0 +1,87 @@
+package controllers
+
+import (
+	contractshttp "github.com/goravel/framework/contracts/http"
+	"github.com/goravel/framework/facades"
+
+	"github.com/khs1001/goravel-admin/models"
+	"github.com/khs1001/goravel-admin/pages"
+	"github.com/khs1001/goravel-admin/support"
+)
+
+// AuthController 登录/登出/当前用户/验证码，对齐 owl-admin AuthController。
+type AuthController struct{}
+
+func NewAuthController() *AuthController { return &AuthController{} }
+
+// Login POST /admin-api/login
+func (r *AuthController) Login(ctx contractshttp.Context) contractshttp.Response {
+	username := ctx.Request().Input("username")
+	password := ctx.Request().Input("password")
+
+	if username == "" {
+		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("用户名不能为空"))
+	}
+	if password == "" {
+		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("密码不能为空"))
+	}
+
+	var user models.AdminUser
+	if err := facades.Orm().Query().Where("username", username).First(&user); err != nil {
+		facades.Log().Warningf("[admin] query user %s failed: %v", username, err)
+	}
+	if user.ID == 0 || !facades.Hash().Check(password, user.Password) {
+		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("登录失败，请检查用户名或密码"))
+	}
+
+	if !user.IsEnabled() {
+		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("用户被禁用"))
+	}
+
+	token, err := facades.Auth(ctx).Guard("admin").Login(&user)
+	if err != nil {
+		facades.Log().Errorf("[admin] login failed: %v", err)
+
+		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("登录失败："+err.Error()))
+	}
+
+	return ctx.Response().Json(contractshttp.StatusOK, support.Success(map[string]any{"token": token}, "登录成功"))
+}
+
+// Logout GET /admin-api/logout
+func (r *AuthController) Logout(ctx contractshttp.Context) contractshttp.Response {
+	if err := facades.Auth(ctx).Guard("admin").Logout(); err != nil {
+		facades.Log().Warningf("[admin] logout failed: %v", err)
+	}
+
+	return ctx.Response().Json(contractshttp.StatusOK, support.SuccessMessage("退出成功"))
+}
+
+// CurrentUser GET /admin-api/current-user
+func (r *AuthController) CurrentUser(ctx contractshttp.Context) contractshttp.Response {
+	user := &models.AdminUser{}
+	if err := facades.Auth(ctx).Guard("admin").User(user); err != nil || user.ID == 0 {
+		return ctx.Response().Json(contractshttp.StatusOK, support.Unauthorized("请先登录"))
+	}
+
+	name := user.Name
+	if name == "" {
+		name = user.Username
+	}
+
+	return ctx.Response().Json(contractshttp.StatusOK, support.Success(map[string]any{
+		"name":   name,
+		"avatar": user.Avatar,
+		"menus":  pages.UserDropdown(name, user.Avatar),
+	}, ""))
+}
+
+// Captcha GET /admin-api/captcha
+// 第一阶段不启用验证码（config admin.auth.login_captcha=false 时前端不渲染验证码），
+// 返回空占位数据，二期接入 base64Captcha。
+func (r *AuthController) Captcha(ctx contractshttp.Context) contractshttp.Response {
+	return ctx.Response().Json(contractshttp.StatusOK, support.Success(map[string]any{
+		"captcha_img": "",
+		"sys_captcha": "",
+	}, ""))
+}

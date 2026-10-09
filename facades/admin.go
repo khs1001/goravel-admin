@@ -3,9 +3,8 @@ package facades
 import (
 	"log"
 
+	"github.com/khs1001/goravel-admin"
 	"github.com/khs1001/goravel-admin/contracts"
-
-	admin "github.com/khs1001/goravel-admin"
 )
 
 func Admin() contracts.Admin {
