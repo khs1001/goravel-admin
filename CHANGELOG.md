@@ -2,6 +2,10 @@
 
 所有 notable changes 记录于此。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [v0.1.14] — 配置模板移至包内 config/
+
+- 配置模板从 `setup/config/admin.go` 移至 `config/admin.go`（包内常规位置），setup 命令与 vendor:publish 读取路径同步更新
+
 ## [v0.1.13] — 配置模板迁入包内 setup/config/
 
 - 新增 `setup/config/admin.go`：合法可编译的 Go 配置文件（对齐 goravel/example-package 约定），setup 命令经 `file.GetPackageContent` 读取后原样发布到宿主 `config/admin.go`

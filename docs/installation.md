@@ -15,7 +15,7 @@ go get github.com/khs1001/goravel-admin
 go run github.com/khs1001/goravel-admin/setup
 ```
 
-也可用官方 vendor:publish 单独发布配置（模板位于包内 `setup/config/admin.go`）：
+也可用官方 vendor:publish 单独发布配置（模板位于包内 `config/admin.go`）：
 
 ```bash
 go run . artisan vendor:publish --package=github.com/khs1001/goravel-admin

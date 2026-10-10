@@ -12,9 +12,9 @@ import (
 func main() {
 	setup := packages.Setup(os.Args)
 
-	// 配置模板：包内 setup/config/admin.go（合法 Go 文件，对齐 goravel/example-package 约定）。
+	// 配置模板：包内 config/admin.go（合法 Go 文件）。
 	// 原样发布到宿主 config/admin.go；vendor:publish --package=github.com/khs1001/goravel-admin 亦可发布。
-	configContent, err := file.GetPackageContent(setup.Paths().Module().String(), "setup/config/admin.go")
+	configContent, err := file.GetPackageContent(setup.Paths().Module().String(), "config/admin.go")
 	if err != nil {
 		panic(err)
 	}
