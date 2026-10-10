@@ -9,6 +9,10 @@
 - `Login` 在开关（`admin.auth.login_captcha`）开启时强制校验验证码，失败不计入登录限流
 - 前端零改动：admin-views 登录页原生支持（`settings.login_captcha` 触发拉取，提交带 `captcha` + `sys_captcha`）
 
+## [v0.1.9] — 测试支持
+
+- `GenerateLoginCaptcha` 同时返回答案，供宿主 feature 测试走真实 cache 门面验证全链路（生成→校验→一次性消费→拒绝）
+
 ## [v0.1.7] — 控制器侧字段级 diff
 
 - 新增 `services.DiffFields`（json-tag 序列化对比）与 `services.DispatchChangeLog`（Queue 异步落库、自动识别操作人）
