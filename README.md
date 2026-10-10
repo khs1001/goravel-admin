@@ -38,22 +38,13 @@ func Providers() []foundation.ServiceProvider {
 }
 ```
 
-`bootstrap/migrations.go`：
+`bootstrap/migrations.go` **不要**罗列扩展包迁移（v0.1.4 起的迁移注册规范）：
 
-```go
-import adminmigrations "github.com/khs1001/goravel-admin/database/migrations"
-
-func Migrations() []schema.Migration {
-    return []schema.Migration{
-        // ...
-        &adminmigrations.M20260101000001CreateAdminTables{},
-        &adminmigrations.M20260101000002SeedRbac{},
-        &adminmigrations.M20260101000003CreateOrgTables{},
-        &adminmigrations.M20260101000004SeedOrgRbac{},
-        &adminmigrations.M20260101000005CreateOperationLogs{},
-    }
-}
-```
+> 数据迁移只在扩展包内部的 `ServiceProvider.Boot` 中注册——
+> admin 包自身的迁移来自 `admin.Migrations()`（单一注册源），
+> 二级插件迁移来自其 `contracts.Migrator` 可选实现，均由 admin 包
+> 在 Boot 阶段经 `Schema().Register` 统一注册，宿主零维护。
+> 宿主的 `bootstrap/migrations.go` 只保留应用自身的迁移（如 jobs 表）。
 
 `config/auth.go` 增加 guard：
 
@@ -74,6 +65,15 @@ func Migrations() []schema.Migration {
 ## 二级插件示例
 
 见 [goravel 主项目](https://github.com/khs1001/goravel) 中的 `packages/notice`（公告管理）：实现 `Plugin` 接口并在自己的 `ServiceProvider.Register` 中绑定即可，admin 包 Boot 时自动发现，宿主零修改。
+
+插件自带数据迁移时，额外实现可选的 `contracts.Migrator` 接口：
+
+```go
+// Migrations 插件自带迁移（admin 包 Boot 阶段自动注册，宿主不罗列）
+func (r *Plugin) Migrations() []schema.Migration {
+    return []schema.Migration{ &migrations.M20260101000006CreateNotices{} }
+}
+```
 
 ## 许可
 
