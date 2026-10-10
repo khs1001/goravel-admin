@@ -19,5 +19,6 @@ func Migrations() []schema.Migration {
 		&migrations.M20260101000004SeedOrgRbac{},
 		&migrations.M20260101000005CreateOperationLogs{},
 		&migrations.M20260101000007AddChangesToOperationLogs{},
+		&migrations.M20260101000008CreateLoginLogs{},
 	}
 }

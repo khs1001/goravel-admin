@@ -52,6 +52,7 @@
 | 字典 `admin_dictionaries` | 同上 | — |
 | 字典项 `admin_dictionary_items` | 同上 | — |
 | 操作日志 `admin_operation_logs` | GET / GET `{id}/edit`（只读） | — |
+| 登录日志 `admin_login_logs` | GET / GET `{id}/edit`（只读，支持 username/ip/status 筛选） | — |
 
 另有 `GET /system` 返回系统管理入口页 schema。
 

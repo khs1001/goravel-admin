@@ -38,6 +38,8 @@ func (r *AuthController) Login(ctx contractshttp.Context) contractshttp.Response
 	ip := ctx.Request().Ip()
 	if throttle.TooManyAttempts(ip) {
 		facades.Log().Warningf("[admin] login throttled for ip %s (user %s)", ip, username)
+		services.DispatchLoginLog(ctx, 0, username, models.LoginStatusThrottled,
+			services.LoginThrottleMessage(services.DefaultLoginLockMinutes))
 
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail(services.LoginThrottleMessage(services.DefaultLoginLockMinutes)))
 	}
@@ -48,12 +50,14 @@ func (r *AuthController) Login(ctx contractshttp.Context) contractshttp.Response
 	}
 	if user.ID == 0 || !facades.Hash().Check(password, user.Password) {
 		throttle.Hit(ip)
+		services.DispatchLoginLog(ctx, int(user.ID), username, models.LoginStatusFailed, "用户名或密码错误")
 
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("登录失败，请检查用户名或密码"))
 	}
 
 	if !user.IsEnabled() {
 		throttle.Hit(ip)
+		services.DispatchLoginLog(ctx, int(user.ID), username, models.LoginStatusDisabled, "账号被禁用")
 
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("用户被禁用"))
 	}
@@ -66,6 +70,7 @@ func (r *AuthController) Login(ctx contractshttp.Context) contractshttp.Response
 	}
 
 	throttle.Clear(ip)
+	services.DispatchLoginLog(ctx, int(user.ID), username, models.LoginStatusSuccess, "登录成功")
 
 	return ctx.Response().Json(contractshttp.StatusOK, support.Success(map[string]any{"token": token}, "登录成功"))
 }

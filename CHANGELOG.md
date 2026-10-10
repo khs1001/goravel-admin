@@ -2,6 +2,13 @@
 
 所有 notable changes 记录于此。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [v0.1.10] — 登录日志
+
+- 新增 `admin_login_logs` 表（迁移 20260101000008，含"登录日志"菜单与查看权限的幂等 seed）
+- `LoginLogJob`（Queue 异步）：登录成功/密码错误/限流锁定/账号禁用全量留痕，记录 IP 与 User-Agent
+- 只读列表页 `/system/admin_login_logs`（用户名/IP/状态筛选 + 详情抽屉），菜单挂在"系统管理"下
+- 与操作日志同款异步模式，队列派发失败不影响登录主流程
+
 ## [v0.1.8] — 登录验证码
 
 - 实现 `GET /captcha`：`base64Captcha` 数字图形验证码，返回 `{sys_captcha, captcha_img}`（data URI，前端直接渲染）

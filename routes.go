@@ -143,6 +143,11 @@ func RegisterRoutes(plugins []contracts.Plugin) {
 				permitted.Get("/system/admin_operation_logs", logController.Index)
 				permitted.Get("/system/admin_operation_logs/{id}/edit", logController.Edit)
 
+				// 登录日志（只读）
+				loginLogController := controllers.NewAdminLoginLogController()
+				permitted.Get("/system/admin_login_logs", loginLogController.Index)
+				permitted.Get("/system/admin_login_logs/{id}/edit", loginLogController.Edit)
+
 				// 插件业务路由
 				for _, plugin := range plugins {
 					plugin.Routes(permitted)
