@@ -41,7 +41,8 @@ func (r *ServiceProvider) Register(app foundation.Application) {
 }
 
 // Boot 启动：收集插件（容器 PluginKey 绑定 → contracts.Plugin），
-// 注册操作日志队列任务与 ORM 观察者，并注册后台全部路由。
+// 注册数据迁移（扩展包自身 + 实现 contracts.Migrator 的插件）、
+// 操作日志队列任务与 ORM 观察者，并注册后台全部路由。
 func (r *ServiceProvider) Boot(app foundation.Application) {
 	plugins := r.collectPlugins(app)
 
@@ -52,9 +53,31 @@ func (r *ServiceProvider) Boot(app foundation.Application) {
 		}
 	}
 
+	registerMigrations(plugins)
 	registerOperationLog()
 
 	RegisterRoutes(plugins)
+}
+
+// registerMigrations 注册数据迁移。
+//
+// 迁移注册规范：只在扩展包内部注册，宿主应用不罗列——
+// admin 包自身的迁移来自 Migrations()（单一注册源），
+// 二级插件迁移来自其 contracts.Migrator 可选实现。
+func registerMigrations(plugins []contracts.Plugin) {
+	migrations := Migrations()
+	for _, plugin := range plugins {
+		migrator, ok := plugin.(contracts.Migrator)
+		if !ok {
+			continue
+		}
+
+		pluginMigrations := migrator.Migrations()
+		facades.Log().Debugf("[admin] plugin %s registered %d migrations", plugin.Name(), len(pluginMigrations))
+		migrations = append(migrations, pluginMigrations...)
+	}
+
+	facades.Schema().Register(migrations)
 }
 
 // registerOperationLog 注册操作日志 Job（Queue）与 ORM 模型观察者。

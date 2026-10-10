@@ -1,6 +1,9 @@
 package contracts
 
-import contractsroute "github.com/goravel/framework/contracts/route"
+import (
+	contractsschema "github.com/goravel/framework/contracts/database/schema"
+	contractsroute "github.com/goravel/framework/contracts/route"
+)
 
 // PluginKey 是插件的容器绑定 key 类型。
 //
@@ -42,6 +45,18 @@ type Plugin interface {
 	Pages() map[string]any
 	// Routes 在 admin-api 前缀下、鉴权中间件之后注册业务路由
 	Routes(router contractsroute.Router)
+}
+
+// Migrator 是插件的可选迁移契约。
+//
+// 实现 Migrations() 返回插件自带的数据迁移，admin 包会在 Boot 阶段
+// 统一注册进宿主应用（Schema().Register）。
+//
+// 迁移注册规范：数据迁移只在扩展包内部注册（admin 包自身 + 本接口），
+// 宿主应用不应在 bootstrap/migrations.go 中罗列扩展包/插件迁移。
+type Migrator interface {
+	// Migrations 插件自带的全部迁移
+	Migrations() []contractsschema.Migration
 }
 
 // MenuItem 对应 owl-admin 前端 IRoute（/menus 端点返回的菜单树节点）。
