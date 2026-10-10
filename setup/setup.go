@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -6,23 +5,32 @@ import (
 
 	"github.com/goravel/framework/packages"
 	"github.com/goravel/framework/packages/modify"
+	"github.com/goravel/framework/support/file"
 	"github.com/goravel/framework/support/path"
 )
 
 func main() {
 	setup := packages.Setup(os.Args)
+
+	// 配置模板：包内 setup/config/admin.go（合法 Go 文件，对齐 goravel/example-package 约定）。
+	// 原样发布到宿主 config/admin.go；vendor:publish --package=github.com/khs1001/goravel-admin 亦可发布。
+	configContent, err := file.GetPackageContent(setup.Paths().Module().String(), "setup/config/admin.go")
+	if err != nil {
+		panic(err)
+	}
+
 	serviceProvider := "&admin.ServiceProvider{}"
 	moduleImport := setup.Paths().Module().Import()
 	configPath := path.Config("admin.go")
 
 	setup.Install(
-		// Register the service provider
+		// Register the service provider in bootstrap/providers.go
 		modify.RegisterProvider(moduleImport, serviceProvider),
 
-		// Add config
-		modify.File(configPath).Overwrite(config(setup.Paths().Config().Package(), setup.Paths().Facades().Import(), setup.Paths().Facades().Package())),
+		// Publish the config file to the project's config directory
+		modify.File(configPath).Overwrite(configContent),
 	).Uninstall(
-		// Remove config/cache.go
+		// Remove config/admin.go
 		modify.File(configPath).Remove(),
 
 		// Unregister the service provider

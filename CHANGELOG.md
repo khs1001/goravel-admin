@@ -2,6 +2,12 @@
 
 所有 notable changes 记录于此。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [v0.1.13] — 配置模板迁入包内 setup/config/
+
+- 新增 `setup/config/admin.go`：合法可编译的 Go 配置文件（对齐 goravel/example-package 约定），setup 命令经 `file.GetPackageContent` 读取后原样发布到宿主 `config/admin.go`
+- 支持 `vendor:publish --package=github.com/khs1001/goravel-admin` 自动发布；已存在配置时提示 `--force`，不再静默覆盖
+- 移除 setup/stubs.go 内嵌字符串模板
+
 ## [v0.1.12] — admin:install 一键安装
 
 - 新增 `admin:install` artisan 命令：迁移编排（`Artisan.Call("migrate")`）→ 默认超管核验 → 配置体检
