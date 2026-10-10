@@ -30,8 +30,9 @@ func RegisterRoutes(plugins []contracts.Plugin) {
 	indexController := controllers.NewIndexController(services.NewMenuService(), settingService, pageService)
 	indexController.SetPluginMenus(pluginMenus)
 
-	// 前端静态资源：public/admin-assets → /admin-assets/*（admin-views 构建产物）
-	facades.Route().Static("admin-assets", "public/admin-assets")
+	// 前端静态资源：go:embed 嵌入的 admin-views 构建产物 → /admin-assets/*
+	// （资源注册规范：由扩展包内部注册，宿主 public/ 不携带）
+	facades.Route().StaticFS("admin-assets", AdminAssets())
 	// 上传文件访问：storage/app/public → /storage/*（public 磁盘）
 	facades.Route().Static("storage", "storage/app/public")
 
