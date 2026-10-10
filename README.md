@@ -60,7 +60,12 @@ func Providers() []foundation.ServiceProvider {
 
 ## 前端
 
-将 owl-admin admin-views 构建产物拷贝到主项目 `public/admin-assets/`，访问 `http://localhost:3000/admin-assets/`。
+前端构建产物（owl-admin admin-views）**随扩展包分发**：`admin-assets/` 目录经 `go:embed` 嵌入二进制，由 admin 包在注册路由时通过 `Route().StaticFS("admin-assets", AdminAssets())` 提供服务（`/admin-assets/*`）。
+
+前端资源注册规范（v0.1.5 起）：
+- 宿主应用的 `public/` 不携带、不注册后台前端资源
+- 更新前端：替换包内 `admin-assets/` 目录为新构建产物 → 发新版本 → 宿主 `go get` 升级
+- 产物目录必须在包根（embed 指令路径固定），包含 `index.html`、`assets/`、`scripts/` 等
 
 ## 二级插件示例
 
