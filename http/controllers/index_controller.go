@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"strconv"
 	"time"
 
 	contractshttp "github.com/goravel/framework/contracts/http"
@@ -155,6 +156,8 @@ func (r *AuthController) SaveUserSetting(ctx contractshttp.Context) contractshtt
 		return ctx.Response().Json(contractshttp.StatusOK, support.Unauthorized("请先登录"))
 	}
 
+	old := *user
+
 	if name := ctx.Request().Input("name"); name != "" {
 		user.Name = name
 	}
@@ -184,6 +187,9 @@ func (r *AuthController) SaveUserSetting(ctx contractshttp.Context) contractshtt
 	if err := facades.Orm().Query().Save(user); err != nil {
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("保存失败："+err.Error()))
 	}
+
+	services.DispatchChangeLog(ctx, "admin_users", strconv.FormatUint(uint64(user.ID), 10),
+		services.DiffFields(&old, user, []string{"name", "avatar"}))
 
 	return ctx.Response().Json(contractshttp.StatusOK, support.SuccessMessage("保存成功"))
 }

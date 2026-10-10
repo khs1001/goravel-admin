@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"strconv"
 	contractshttp "github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
 
 	"github.com/khs1001/goravel-admin/models"
 	"github.com/khs1001/goravel-admin/pages"
+	"github.com/khs1001/goravel-admin/services"
 	"github.com/khs1001/goravel-admin/support"
 )
 
@@ -120,6 +122,7 @@ func (r *AdminDepartmentController) Update(ctx contractshttp.Context) contractsh
 	}
 
 	id := int(dept.ID)
+	old := dept
 	if _, errResp := r.fill(ctx, &dept); errResp != nil {
 		return errResp(ctx)
 	}
@@ -131,6 +134,9 @@ func (r *AdminDepartmentController) Update(ctx contractshttp.Context) contractsh
 	if err := facades.Orm().Query().Save(&dept); err != nil {
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("保存失败："+err.Error()))
 	}
+
+	services.DispatchChangeLog(ctx, "admin_departments", strconv.FormatUint(uint64(dept.ID), 10),
+		services.DiffFields(&old, &dept, []string{"parent_id", "name", "custom_order", "remark"}))
 
 	return ctx.Response().Json(contractshttp.StatusOK, support.SuccessMessage("更新成功"))
 }

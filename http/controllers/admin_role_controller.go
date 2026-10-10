@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"strconv"
 	contractshttp "github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
 
@@ -128,6 +129,8 @@ func (r *AdminRoleController) Update(ctx contractshttp.Context) contractshttp.Re
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("超级管理员角色不可修改"))
 	}
 
+	old := role
+
 	if name := ctx.Request().Input("name"); name != "" {
 		role.Name = name
 	}
@@ -144,6 +147,9 @@ func (r *AdminRoleController) Update(ctx contractshttp.Context) contractshttp.Re
 	if err := facades.Orm().Query().Save(&role); err != nil {
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("保存失败："+err.Error()))
 	}
+
+	services.DispatchChangeLog(ctx, "admin_roles", strconv.FormatUint(uint64(role.ID), 10),
+		services.DiffFields(&old, &role, []string{"name", "slug"}))
 
 	return ctx.Response().Json(contractshttp.StatusOK, support.SuccessMessage("更新成功"))
 }

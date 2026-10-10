@@ -81,25 +81,23 @@ func registerMigrations(plugins []contracts.Plugin) {
 }
 
 // registerOperationLog 注册操作日志 Job（Queue）与 ORM 模型观察者。
-// 各表 TraceColumns 声明参与字段级 diff 的业务列（仅 updated 动作记录变更前后值）。
+// observer 记录 created/deleted；updated 的字段级 diff 由各控制器
+// 调用 services.DispatchChangeLog 记录（Save 模式下 ORM 事件拿不到 Original）。
 func registerOperationLog() {
 	facades.Queue().Register([]contractsqueue.Job{&jobs.OperationLogJob{}})
 
 	observer := func(resource string) services.OperationLogObserver {
 		return services.OperationLogObserver{Resource: resource}
 	}
-	tracingObserver := func(resource string, columns ...string) services.OperationLogObserver {
-		return services.OperationLogObserver{Resource: resource, TraceColumns: columns}
-	}
 
-	facades.Orm().Observe(&models.AdminUser{}, tracingObserver("admin_users", "username", "name", "avatar", "enabled", "password"))
-	facades.Orm().Observe(&models.AdminRole{}, tracingObserver("admin_roles", "name", "slug"))
-	facades.Orm().Observe(&models.AdminPermission{}, tracingObserver("admin_permissions", "name", "slug", "http_method", "http_path", "custom_order", "parent_id"))
-	facades.Orm().Observe(&models.AdminMenu{}, tracingObserver("admin_menus", "title", "url", "url_type", "visible", "custom_order", "parent_id", "icon"))
-	facades.Orm().Observe(&models.AdminDepartment{}, tracingObserver("admin_departments", "name", "parent_id", "custom_order", "remark"))
-	facades.Orm().Observe(&models.AdminPosition{}, tracingObserver("admin_positions", "name", "custom_order", "remark"))
-	facades.Orm().Observe(&models.AdminDictionary{}, tracingObserver("admin_dictionaries", "name", "key", "remark"))
-	facades.Orm().Observe(&models.AdminDictionaryItem{}, tracingObserver("admin_dictionary_items", "label", "value", "custom_order", "dictionary_id"))
+	facades.Orm().Observe(&models.AdminUser{}, observer("admin_users"))
+	facades.Orm().Observe(&models.AdminRole{}, observer("admin_roles"))
+	facades.Orm().Observe(&models.AdminPermission{}, observer("admin_permissions"))
+	facades.Orm().Observe(&models.AdminMenu{}, observer("admin_menus"))
+	facades.Orm().Observe(&models.AdminDepartment{}, observer("admin_departments"))
+	facades.Orm().Observe(&models.AdminPosition{}, observer("admin_positions"))
+	facades.Orm().Observe(&models.AdminDictionary{}, observer("admin_dictionaries"))
+	facades.Orm().Observe(&models.AdminDictionaryItem{}, observer("admin_dictionary_items"))
 	facades.Orm().Observe(&models.AdminSetting{}, observer("admin_settings"))
 }
 

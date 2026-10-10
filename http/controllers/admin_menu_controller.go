@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"strconv"
 	contractshttp "github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
 
 	"github.com/khs1001/goravel-admin/models"
 	"github.com/khs1001/goravel-admin/pages"
+	"github.com/khs1001/goravel-admin/services"
 	"github.com/khs1001/goravel-admin/support"
 )
 
@@ -137,6 +139,8 @@ func (r *AdminMenuController) Update(ctx contractshttp.Context) contractshttp.Re
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("记录不存在"))
 	}
 
+	old := menu
+
 	if _, errResp := r.fill(ctx, &menu); errResp != nil {
 		return errResp(ctx)
 	}
@@ -144,6 +148,9 @@ func (r *AdminMenuController) Update(ctx contractshttp.Context) contractshttp.Re
 	if err := facades.Orm().Query().Save(&menu); err != nil {
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("保存失败："+err.Error()))
 	}
+
+	services.DispatchChangeLog(ctx, "admin_menus", strconv.FormatUint(uint64(menu.ID), 10),
+		services.DiffFields(&old, &menu, []string{"parent_id", "title", "icon", "url", "url_type", "visible", "custom_order", "is_home", "keep_alive", "iframe_url", "component", "is_full"}))
 
 	// 设为首页时清除其他首页标记（对齐 AdminMenuService::changeHomePage）
 	if menu.IsHome == 1 {

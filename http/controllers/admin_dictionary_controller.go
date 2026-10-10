@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"strconv"
 	contractshttp "github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
 
 	"github.com/khs1001/goravel-admin/models"
 	"github.com/khs1001/goravel-admin/pages"
+	"github.com/khs1001/goravel-admin/services"
 	"github.com/khs1001/goravel-admin/support"
 )
 
@@ -95,6 +97,8 @@ func (r *AdminDictionaryController) Update(ctx contractshttp.Context) contractsh
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("记录不存在"))
 	}
 
+	old := dictionary
+
 	if _, errResp := r.fill(ctx, &dictionary, int(dictionary.ID)); errResp != nil {
 		return errResp(ctx)
 	}
@@ -102,6 +106,9 @@ func (r *AdminDictionaryController) Update(ctx contractshttp.Context) contractsh
 	if err := facades.Orm().Query().Save(&dictionary); err != nil {
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("保存失败："+err.Error()))
 	}
+
+	services.DispatchChangeLog(ctx, "admin_dictionaries", strconv.FormatUint(uint64(dictionary.ID), 10),
+		services.DiffFields(&old, &dictionary, []string{"name", "key", "remark"}))
 
 	return ctx.Response().Json(contractshttp.StatusOK, support.SuccessMessage("更新成功"))
 }
@@ -235,6 +242,8 @@ func (r *AdminDictionaryController) ItemsUpdate(ctx contractshttp.Context) contr
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("记录不存在"))
 	}
 
+	old := item
+
 	if _, errResp := r.fillItem(ctx, &item); errResp != nil {
 		return errResp(ctx)
 	}
@@ -242,6 +251,9 @@ func (r *AdminDictionaryController) ItemsUpdate(ctx contractshttp.Context) contr
 	if err := facades.Orm().Query().Save(&item); err != nil {
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("保存失败："+err.Error()))
 	}
+
+	services.DispatchChangeLog(ctx, "admin_dictionary_items", strconv.FormatUint(uint64(item.ID), 10),
+		services.DiffFields(&old, &item, []string{"dictionary_id", "label", "value", "custom_order"}))
 
 	return ctx.Response().Json(contractshttp.StatusOK, support.SuccessMessage("更新成功"))
 }

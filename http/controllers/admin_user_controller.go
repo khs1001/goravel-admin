@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"strconv"
 	contractshttp "github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
 
 	"github.com/khs1001/goravel-admin/models"
 	"github.com/khs1001/goravel-admin/pages"
+	"github.com/khs1001/goravel-admin/services"
 	"github.com/khs1001/goravel-admin/support"
 )
 
@@ -193,6 +195,8 @@ func (r *AdminUserController) Update(ctx contractshttp.Context) contractshttp.Re
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("超级管理员不可禁用"))
 	}
 
+	old := user
+
 	if name := ctx.Request().Input("name"); name != "" {
 		user.Name = name
 	}
@@ -231,6 +235,10 @@ func (r *AdminUserController) Update(ctx contractshttp.Context) contractshttp.Re
 			return ctx.Response().Json(contractshttp.StatusOK, support.Fail("保存角色失败："+err.Error()))
 		}
 	}
+
+	// diff 排除 password（哈希值对比无审计意义，密码变更走 HTTP 请求日志且已脱敏）
+	services.DispatchChangeLog(ctx, "admin_users", strconv.FormatUint(uint64(user.ID), 10),
+		services.DiffFields(&old, &user, []string{"username", "name", "avatar", "enabled"}))
 
 	return ctx.Response().Json(contractshttp.StatusOK, support.SuccessMessage("更新成功"))
 }

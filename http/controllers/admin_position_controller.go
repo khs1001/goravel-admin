@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"strconv"
 	contractshttp "github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
 
 	"github.com/khs1001/goravel-admin/models"
 	"github.com/khs1001/goravel-admin/pages"
+	"github.com/khs1001/goravel-admin/services"
 	"github.com/khs1001/goravel-admin/support"
 )
 
@@ -103,6 +105,8 @@ func (r *AdminPositionController) Update(ctx contractshttp.Context) contractshtt
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("记录不存在"))
 	}
 
+	old := position
+
 	if _, errResp := r.fill(ctx, &position); errResp != nil {
 		return errResp(ctx)
 	}
@@ -110,6 +114,9 @@ func (r *AdminPositionController) Update(ctx contractshttp.Context) contractshtt
 	if err := facades.Orm().Query().Save(&position); err != nil {
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("保存失败："+err.Error()))
 	}
+
+	services.DispatchChangeLog(ctx, "admin_positions", strconv.FormatUint(uint64(position.ID), 10),
+		services.DiffFields(&old, &position, []string{"name", "custom_order", "remark"}))
 
 	return ctx.Response().Json(contractshttp.StatusOK, support.SuccessMessage("更新成功"))
 }

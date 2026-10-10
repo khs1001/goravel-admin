@@ -12,12 +12,15 @@ import (
 )
 
 // OperationLogObserver ORM 模型事件观察者：记录后台资源表的
-// created / updated / deleted 变更，经 Queue 异步落库。
-// TraceColumns 声明参与字段级 diff 的列（仅 updated 动作记录变更前后值），
-// 为空则不记录 diff。注册方式见 ServiceProvider.Boot：facades.Orm().Observe(model, observer)。
+// created / deleted 变更，经 Queue 异步落库。
+//
+// updated 动作不走 ORM 事件：Save 模式下框架事件的 Original 快照不可用
+//（conditions.model 为空，GetOriginal 返回空），字段级 diff 由各控制器在
+// 更新保存后调用 services.DispatchChangeLog 记录（天然持有更新前后状态）。
+//
+// 注册方式见 ServiceProvider.Boot：facades.Orm().Observe(model, observer)。
 type OperationLogObserver struct {
-	Resource     string
-	TraceColumns []string
+	Resource string
 }
 
 // Created 创建后记录。
@@ -27,10 +30,9 @@ func (r OperationLogObserver) Created(event contractsorm.Event) error {
 	return nil
 }
 
-// Updated 更新后记录（含字段级 diff）。
+// Updated 更新事件不在此记录（契约要求实现）：Save 模式下框架拿不到
+// Original 快照，字段级 diff 由各控制器调用 services.DispatchChangeLog 记录。
 func (r OperationLogObserver) Updated(event contractsorm.Event) error {
-	r.record("updated", event)
-
 	return nil
 }
 
@@ -68,12 +70,8 @@ func (r OperationLogObserver) record(action string, event contractsorm.Event) {
 	}
 
 	// 操作人：orm 事件栈里拿不到 HTTP 上下文，统一记为 system；
-	// 请求级操作人由 OperationLog 中间件记录。
+	// 请求级操作人由 OperationLog 中间件记录，更新 diff 由控制器记录。
 	payload.Username = "system"
-
-	if action == "updated" && len(r.TraceColumns) > 0 {
-		payload.Changes = buildChanges(event, r.TraceColumns)
-	}
 
 	encoded, err := json.Marshal(payload)
 	if err != nil {
@@ -87,33 +85,4 @@ func (r OperationLogObserver) record(action string, event contractsorm.Event) {
 	}).Dispatch(); err != nil {
 		facades.Log().Warningf("[admin] dispatch orm log failed: %v", err)
 	}
-}
-
-// buildChanges 组装字段级变更 JSON：{col: {old, new}}（纯函数，便于测试）。
-// 仅记录 dirty 列；无变更返回空串。
-func buildChanges(event contractsorm.Event, columns []string) string {
-	changes := make(map[string]map[string]any)
-	for _, col := range columns {
-		if !event.IsDirty(col) {
-			continue
-		}
-
-		changes[col] = map[string]any{
-			"old": event.GetOriginal(col),
-			"new": event.GetAttribute(col),
-		}
-	}
-
-	if len(changes) == 0 {
-		return ""
-	}
-
-	encoded, err := json.Marshal(changes)
-	if err != nil {
-		facades.Log().Warningf("[admin] build changes failed: %v", err)
-
-		return ""
-	}
-
-	return string(encoded)
 }

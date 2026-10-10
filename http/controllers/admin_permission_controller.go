@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"strconv"
 	"encoding/json"
 
 	contractshttp "github.com/goravel/framework/contracts/http"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/khs1001/goravel-admin/models"
 	"github.com/khs1001/goravel-admin/pages"
+	"github.com/khs1001/goravel-admin/services"
 	"github.com/khs1001/goravel-admin/support"
 )
 
@@ -143,6 +145,8 @@ func (r *AdminPermissionController) Update(ctx contractshttp.Context) contractsh
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("记录不存在"))
 	}
 
+	old := permission
+
 	if _, errResp := r.fill(ctx, &permission); errResp != nil {
 		return errResp(ctx)
 	}
@@ -150,6 +154,9 @@ func (r *AdminPermissionController) Update(ctx contractshttp.Context) contractsh
 	if err := facades.Orm().Query().Save(&permission); err != nil {
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("保存失败："+err.Error()))
 	}
+
+	services.DispatchChangeLog(ctx, "admin_permissions", strconv.FormatUint(uint64(permission.ID), 10),
+		services.DiffFields(&old, &permission, []string{"name", "slug", "http_method", "http_path", "custom_order", "parent_id"}))
 
 	if err := r.syncMenus(int(permission.ID), intSlice(ctx.Request().All()["menus"])); err != nil {
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("保存菜单挂载失败："+err.Error()))
