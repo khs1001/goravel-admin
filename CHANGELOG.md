@@ -2,7 +2,11 @@
 
 所有 notable changes 记录于此。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
-## [v0.1.11] — 修复
+## [v0.1.12] — admin:install 一键安装
+
+- 新增 `admin:install` artisan 命令：迁移编排（`Artisan.Call("migrate")`）→ 默认超管核验 → 配置体检
+- 体检项：JWT_SECRET/APP_KEY 强度、queue 驱动与 worker 提示、上传磁盘与目录（缺失自动创建）、验证码开关
+- 幂等可重复执行；ServiceProvider.Boot 注册，宿主升级即获得
 
 - 修复 `LoginLogJob` 未注册进 Queue JobStorer：未注册 signature 的任务被 worker 认领后永久卡在 reserved 状态（不消费、不进 failed_jobs、无错误日志）。新增队列任务必须 `facades.Queue().Register`
 

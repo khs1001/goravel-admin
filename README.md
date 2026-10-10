@@ -27,8 +27,8 @@ go run github.com/khs1001/goravel-admin/setup
 ```
 
 ```bash
-go run . artisan migrate
-go run .
+# 一键安装：迁移 + 数据核验 + 配置体检（幂等）
+go run . artisan admin:install
 ```
 
 默认超级管理员 **admin / admin**，后台入口 `http://127.0.0.1:3000/admin-assets/`。

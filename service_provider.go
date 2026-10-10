@@ -3,10 +3,12 @@ package admin
 import (
 	"github.com/goravel/framework/contracts/binding"
 	"github.com/goravel/framework/contracts/foundation"
+	goravelconsole "github.com/goravel/framework/contracts/console"
 	contractsqueue "github.com/goravel/framework/contracts/queue"
 	"github.com/goravel/framework/facades"
 
 	"github.com/khs1001/goravel-admin/contracts"
+	adminconsole "github.com/khs1001/goravel-admin/console"
 	"github.com/khs1001/goravel-admin/jobs"
 	"github.com/khs1001/goravel-admin/models"
 	"github.com/khs1001/goravel-admin/services"
@@ -56,6 +58,8 @@ func (r *ServiceProvider) Boot(app foundation.Application) {
 	registerMigrations(plugins)
 	registerOperationLog()
 
+	// artisan 命令（admin:install 一键安装）
+	app.Commands([]goravelconsole.Command{&adminconsole.InstallCommand{}})
 	RegisterRoutes(plugins)
 }
 

@@ -62,9 +62,16 @@ func Migrations() []schema.Migration {
 
 ## 初始化
 
+一键安装（迁移 + 数据核验 + 配置体检，幂等可重复执行）：
+
+```bash
+go run . artisan admin:install
+```
+
+或分步执行：
+
 ```bash
 go run . artisan migrate
-go run . artisan db:seed   # 如使用种子数据
 go run .
 ```
 
