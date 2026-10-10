@@ -11,9 +11,17 @@
 ```bash
 go get github.com/khs1001/goravel-admin
 
-# 官方扩展包安装协议：自动注册 ServiceProvider 并生成 config/admin.go
+# 官方扩展包安装协议：自动注册 ServiceProvider 并发布 config/admin.go
 go run github.com/khs1001/goravel-admin/setup
 ```
+
+也可用官方 vendor:publish 单独发布配置（模板位于包内 `setup/config/admin.go`）：
+
+```bash
+go run . artisan vendor:publish --package=github.com/khs1001/goravel-admin
+```
+
+> 配置已存在时不会静默覆盖，需加 `--force`。
 
 ## 手动安装
 

@@ -71,7 +71,8 @@ go run . artisan admin:install
 
 ```
 ├── contracts/        # Plugin / Admin / Migrator 契约
-├── setup/            # 官方扩展包安装命令（注册 provider + 生成 config）
+├── setup/            # 官方扩展包安装命令（setup/config/ 为配置发布模板）
+├── console/          # artisan 命令（admin:install 一键安装）
 ├── http/             # 控制器与中间件（auth/permission/operation_log）
 ├── services/         # 业务服务（diff、登录限流、菜单/页面/权限）
 ├── models/           # gorm 模型
