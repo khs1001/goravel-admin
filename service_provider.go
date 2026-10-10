@@ -84,7 +84,10 @@ func registerMigrations(plugins []contracts.Plugin) {
 // observer 记录 created/deleted；updated 的字段级 diff 由各控制器
 // 调用 services.DispatchChangeLog 记录（Save 模式下 ORM 事件拿不到 Original）。
 func registerOperationLog() {
-	facades.Queue().Register([]contractsqueue.Job{&jobs.OperationLogJob{}})
+	facades.Queue().Register([]contractsqueue.Job{
+		&jobs.OperationLogJob{},
+		&jobs.LoginLogJob{},
+	})
 
 	observer := func(resource string) services.OperationLogObserver {
 		return services.OperationLogObserver{Resource: resource}
