@@ -19,6 +19,8 @@ type OperationLogPayload struct {
 	Path       string `json:"path"`
 	IP         string `json:"ip"`
 	Input      string `json:"input"`
+	// Changes 字段级变更 JSON（{col: {old, new}}），仅 ORM updated 动作记录
+	Changes string `json:"changes"`
 }
 
 // OperationLogJob 异步落库一条操作日志（经 facades.Queue() 调度，
@@ -56,6 +58,9 @@ func (r *OperationLogJob) Handle(args ...any) error {
 	}
 	if payload.Input != "" {
 		log.Input = &payload.Input
+	}
+	if payload.Changes != "" {
+		log.Changes = &payload.Changes
 	}
 
 	if err := facades.Orm().Query().Create(log); err != nil {

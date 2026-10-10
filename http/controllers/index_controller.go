@@ -57,7 +57,8 @@ func (r *IndexController) Settings(ctx contractshttp.Context) contractshttp.Resp
 		"app_name": facades.Config().GetString("admin.name", "Goravel Admin"),
 		"locale":   locale,
 		"layout":   facades.Config().Get("admin.layout", map[string]any{}),
-		"logo":     facades.Config().GetString("admin.logo", ""),
+		// 默认 logo 取嵌入前端产物自带图标，零配置即有品牌展示
+		"logo": facades.Config().GetString("admin.logo", "/admin-assets/logo.png"),
 
 		"login_captcha":          facades.Config().GetBool("admin.auth.login_captcha", false),
 		"locale_options":         localeOptions(),

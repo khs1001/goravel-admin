@@ -11,10 +11,10 @@ func DepartmentsPage() any {
 	}
 
 	columns := []any{
-		map[string]any{"type": "text", "name": "name", "label": "部门名称"},
-		map[string]any{"type": "text", "name": "custom_order", "label": "排序", "sortable": true},
-		map[string]any{"type": "text", "name": "remark", "label": "备注"},
-		map[string]any{"type": "datetime", "name": "created_at", "label": "创建时间", "sortable": true},
+		textColumn("name", "部门名称"),
+		sortableTextColumn("custom_order", "排序"),
+		textColumn("remark", "备注"),
+		datetimeColumn("created_at", "创建时间"),
 	}
 
 	crud := crudBase("/system/admin_departments?_action=getData", columns, filter, []any{
@@ -53,11 +53,11 @@ func PositionsPage() any {
 	}
 
 	columns := []any{
-		map[string]any{"type": "text", "name": "id", "label": "ID", "sortable": true},
-		map[string]any{"type": "text", "name": "name", "label": "岗位名称"},
-		map[string]any{"type": "text", "name": "custom_order", "label": "排序", "sortable": true},
-		map[string]any{"type": "text", "name": "remark", "label": "备注"},
-		map[string]any{"type": "datetime", "name": "created_at", "label": "创建时间", "sortable": true},
+		idColumn(),
+		textColumn("name", "岗位名称"),
+		sortableTextColumn("custom_order", "排序"),
+		textColumn("remark", "备注"),
+		datetimeColumn("created_at", "创建时间"),
 	}
 
 	crud := crudBase("/system/admin_positions?_action=getData", columns, filter, []any{
@@ -90,12 +90,12 @@ func DictionariesPage() any {
 	}
 
 	columns := []any{
-		map[string]any{"type": "text", "name": "id", "label": "ID", "sortable": true},
-		map[string]any{"type": "text", "name": "name", "label": "字典名称"},
-		map[string]any{"type": "tag", "name": "key", "label": "key"},
-		map[string]any{"type": "text", "name": "item_count", "label": "字典项数"},
-		map[string]any{"type": "text", "name": "remark", "label": "备注"},
-		map[string]any{"type": "datetime", "name": "created_at", "label": "创建时间", "sortable": true},
+		idColumn(),
+		textColumn("name", "字典名称"),
+		tagColumn("key", "key"),
+		textColumn("item_count", "字典项数"),
+		textColumn("remark", "备注"),
+		datetimeColumn("created_at", "创建时间"),
 	}
 
 	actions := []any{
@@ -142,9 +142,9 @@ func dictionaryItemsDrawer() map[string]any {
 		"syncLocation":         false,
 		"primaryField":         "id",
 		"columns": []any{
-			map[string]any{"type": "text", "name": "label", "label": "标签"},
-			map[string]any{"type": "text", "name": "value", "label": "值"},
-			map[string]any{"type": "text", "name": "custom_order", "label": "排序", "sortable": true},
+			textColumn("label", "标签"),
+			textColumn("value", "值"),
+			sortableTextColumn("custom_order", "排序"),
 			map[string]any{
 				"type": "operation", "label": "操作",
 				"buttons": rowActions(

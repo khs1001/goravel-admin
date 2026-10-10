@@ -220,15 +220,12 @@ func UsersPage() any {
 	}
 
 	columns := []any{
-		map[string]any{"type": "text", "name": "id", "label": "ID", "sortable": true},
-		map[string]any{"type": "text", "name": "username", "label": "用户名"},
-		map[string]any{"type": "text", "name": "name", "label": "昵称"},
-		map[string]any{
-			"type": "each", "name": "roles", "label": "角色",
-			"items": map[string]any{"type": "tag", "label": "${name}", "className": "my-1"},
-		},
-		map[string]any{"type": "switch", "name": "enabled", "label": "状态", "disabledOn": "${id == 1}"},
-		map[string]any{"type": "datetime", "name": "created_at", "label": "创建时间", "sortable": true},
+		idColumn(),
+		textColumn("username", "用户名"),
+		textColumn("name", "昵称"),
+		eachTagsColumn("roles", "角色"),
+		switchColumn("enabled", "状态", "${id == 1}"),
+		datetimeColumn("created_at", "创建时间"),
 	}
 
 	crud := crudBase("/system/admin_users?_action=getData", columns, filter, []any{
@@ -272,11 +269,11 @@ func RolesPage() any {
 	}
 
 	columns := []any{
-		map[string]any{"type": "text", "name": "id", "label": "ID", "sortable": true},
-		map[string]any{"type": "text", "name": "name", "label": "角色名"},
-		map[string]any{"type": "tag", "name": "slug", "label": "标识"},
-		map[string]any{"type": "datetime", "name": "created_at", "label": "创建时间", "sortable": true},
-		map[string]any{"type": "datetime", "name": "updated_at", "label": "更新时间", "sortable": true},
+		idColumn(),
+		textColumn("name", "角色名"),
+		tagColumn("slug", "标识"),
+		datetimeColumn("created_at", "创建时间"),
+		datetimeColumn("updated_at", "更新时间"),
 	}
 
 	actions := []any{
@@ -332,11 +329,11 @@ func PermissionsPage() any {
 	}
 
 	columns := []any{
-		map[string]any{"type": "text", "name": "id", "label": "ID", "sortable": true},
-		map[string]any{"type": "text", "name": "name", "label": "权限名"},
-		map[string]any{"type": "tag", "name": "slug", "label": "标识"},
-		map[string]any{"type": "text", "name": "http_path", "label": "HTTP 路径"},
-		map[string]any{"type": "datetime", "name": "created_at", "label": "创建时间", "sortable": true},
+		idColumn(),
+		textColumn("name", "权限名"),
+		tagColumn("slug", "标识"),
+		textColumn("http_path", "HTTP 路径"),
+		datetimeColumn("created_at", "创建时间"),
 	}
 
 	crud := crudBase("/system/admin_permissions?_action=getData", columns, filter, []any{
@@ -390,12 +387,12 @@ func MenusPage() any {
 	}
 
 	columns := []any{
-		map[string]any{"type": "text", "name": "id", "label": "ID", "sortable": true},
-		map[string]any{"type": "text", "name": "title", "label": "标题"},
-		map[string]any{"type": "text", "name": "icon", "label": "图标"},
-		map[string]any{"type": "text", "name": "url", "label": "路由"},
-		map[string]any{"type": "text", "name": "custom_order", "label": "排序", "sortable": true},
-		map[string]any{"type": "datetime", "name": "created_at", "label": "创建时间", "sortable": true},
+		idColumn(),
+		textColumn("title", "标题"),
+		textColumn("icon", "图标"),
+		textColumn("url", "路由"),
+		sortableTextColumn("custom_order", "排序"),
+		datetimeColumn("created_at", "创建时间"),
 	}
 
 	crud := crudBase("/system/admin_menus?_action=getData", columns, filter, []any{

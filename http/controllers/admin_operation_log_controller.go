@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"encoding/json"
+	"sort"
+
 	contractshttp "github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
 
@@ -70,8 +73,35 @@ func (r *AdminOperationLogController) format(log *models.AdminOperationLog) map[
 		"path":        log.Path,
 		"ip":          log.IP,
 		"input":       input,
+		"changes":     decodeChanges(log.Changes),
 		"created_at":  log.CreatedAt,
 	}
+}
+
+// decodeChanges 把 changes JSON（{col: {old, new}}）转为 [{field, old, new}] 数组，
+// 供前端 diff 表格直接渲染；空/非法 JSON 返回空数组。
+func decodeChanges(raw *string) []map[string]any {
+	out := []map[string]any{}
+	if raw == nil || *raw == "" {
+		return out
+	}
+
+	var parsed map[string]map[string]any
+	if err := json.Unmarshal([]byte(*raw), &parsed); err != nil {
+		return out
+	}
+
+	for field, change := range parsed {
+		out = append(out, map[string]any{
+			"field": field,
+			"old":   change["old"],
+			"new":   change["new"],
+		})
+	}
+
+	sort.Slice(out, func(i, j int) bool { return out[i]["field"].(string) < out[j]["field"].(string) })
+
+	return out
 }
 
 // Edit GET /system/admin_operation_logs/{id}/edit（详情抽屉回显）。
