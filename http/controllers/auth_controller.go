@@ -109,7 +109,7 @@ func (r *AuthController) Captcha(ctx contractshttp.Context) contractshttp.Respon
 		}, ""))
 	}
 
-	img, err := services.GenerateCaptchaImage()
+	img, _, err := services.GenerateLoginCaptcha()
 	if err != nil {
 		facades.Log().Errorf("[admin] generate captcha failed: %v", err)
 

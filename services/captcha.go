@@ -65,17 +65,18 @@ func (cacheCaptchaStore) Verify(id, answer string, clear bool) bool {
 	return VerifyLoginCaptcha(answer)
 }
 
-// GenerateCaptchaImage 生成一张数字验证码图片（答案入 cache，返回 data URI）。
-func GenerateCaptchaImage() (string, error) {
+// GenerateLoginCaptcha 生成一张数字验证码图片：答案入 cache，
+// 返回 data URI 与答案（答案仅供测试/内部使用，不下发前端）。
+func GenerateLoginCaptcha() (img string, answer string, err error) {
 	driver := base64Captcha.NewDriverDigit(captchaHeight, captchaWidth, captchaLength, captchaMaxSkew, captchaDotCount)
 	captcha := base64Captcha.NewCaptcha(driver, cacheCaptchaStore{})
 
-	_, b64, _, err := captcha.Generate()
+	_, b64, ans, err := captcha.Generate()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return b64, nil
+	return b64, NormalizeCaptchaInput(ans), nil
 }
 
 // VerifyLoginCaptcha 校验并一次性消费验证码（Cache.Pull 原子取删）。
