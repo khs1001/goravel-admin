@@ -40,7 +40,7 @@ config.Add("admin", map[string]any{
 | `default_avatar` | `ADMIN_DEFAULT_AVATAR` | `/admin-assets/default-avatar.png` | 默认头像 |
 | `route.prefix` | `ADMIN_ROUTE_PREFIX` | `admin-api` | 后台 API 路由前缀 |
 | `route.without_extra_routes` | — | `["/dashboard"]` | 不做权限校验的额外路由 |
-| `auth.login_captcha` | — | `false` | 登录验证码开关（预留，`/captcha` 端点已就位） |
+| `auth.login_captcha` | — | `false` | 登录验证码开关；开启后 `GET /captcha` 下发图形验证码，`Login` 强制校验（一次性消费，5 分钟过期） |
 | `auth.enable` | — | `true` | 是否启用认证 |
 | `auth.permission` | — | `false` | 接口级权限拦截开关（false 时仅按菜单可见性过滤） |
 | `layout.title` | — | `%title%` | 布局标题模板 |

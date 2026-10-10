@@ -29,6 +29,11 @@ func (r *AuthController) Login(ctx contractshttp.Context) contractshttp.Response
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("密码不能为空"))
 	}
 
+	// 验证码校验（开关开启时强制）：一次性消费，失败不计入登录限流
+	if services.CaptchaEnabled() && !services.VerifyLoginCaptcha(ctx.Request().Input("captcha")) {
+		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("验证码错误"))
+	}
+
 	throttle := services.NewLoginThrottle()
 	ip := ctx.Request().Ip()
 	if throttle.TooManyAttempts(ip) {
@@ -94,11 +99,25 @@ func (r *AuthController) CurrentUser(ctx contractshttp.Context) contractshttp.Re
 }
 
 // Captcha GET /admin-api/captcha
-// 第一阶段不启用验证码（config admin.auth.login_captcha=false 时前端不渲染验证码），
-// 返回空占位数据，二期接入 base64Captcha。
+// 对齐 owl-admin 契约：sys_captcha 控制前端是否渲染验证码输入框，
+// captcha_img 为可直接作为 <img src> 的 data URI；答案入 Cache（5 分钟过期）。
 func (r *AuthController) Captcha(ctx contractshttp.Context) contractshttp.Response {
+	if !services.CaptchaEnabled() {
+		return ctx.Response().Json(contractshttp.StatusOK, support.Success(map[string]any{
+			"sys_captcha": false,
+			"captcha_img": "",
+		}, ""))
+	}
+
+	img, err := services.GenerateCaptchaImage()
+	if err != nil {
+		facades.Log().Errorf("[admin] generate captcha failed: %v", err)
+
+		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("验证码生成失败"))
+	}
+
 	return ctx.Response().Json(contractshttp.StatusOK, support.Success(map[string]any{
-		"captcha_img": "",
-		"sys_captcha": "",
+		"sys_captcha": true,
+		"captcha_img": img,
 	}, ""))
 }

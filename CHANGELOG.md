@@ -2,6 +2,13 @@
 
 所有 notable changes 记录于此。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [v0.1.8] — 登录验证码
+
+- 实现 `GET /captcha`：`base64Captcha` 数字图形验证码，返回 `{sys_captcha, captcha_img}`（data URI，前端直接渲染）
+- 答案经 `facades.Cache` 存取（key 由答案 md5 派生、不下发），5 分钟过期，`Cache.Pull` 一次性消费；走宿主 cache 驱动，支持多实例部署
+- `Login` 在开关（`admin.auth.login_captcha`）开启时强制校验验证码，失败不计入登录限流
+- 前端零改动：admin-views 登录页原生支持（`settings.login_captcha` 触发拉取，提交带 `captcha` + `sys_captcha`）
+
 ## [v0.1.7] — 控制器侧字段级 diff
 
 - 新增 `services.DiffFields`（json-tag 序列化对比）与 `services.DispatchChangeLog`（Queue 异步落库、自动识别操作人）
