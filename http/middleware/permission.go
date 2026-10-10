@@ -110,25 +110,34 @@ func (r *Permission) allowed(ctx contractshttp.Context, permissionIDs []int, pat
 			continue
 		}
 
-		for _, line := range strings.Split(*permission.HTTPPath, "\n") {
-			line = strings.TrimSpace(line)
-			if line == "" {
+		if pathAllowed(*permission.HTTPPath, method, path) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// pathAllowed 判定单条权限的 http_path（多行、行可带 "METHOD " 前缀）是否放行 method+path。
+func pathAllowed(httpPath, method, path string) bool {
+	for _, line := range strings.Split(httpPath, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+
+		// 行格式："GET /admin-api/xxx" 或 "/admin-api/xxx"（不带方法 = 全部方法）
+		pattern := line
+		if fields := strings.Fields(line); len(fields) == 2 {
+			if !strings.EqualFold(fields[0], method) {
 				continue
 			}
+			pattern = fields[1]
+		}
+		pattern = strings.Trim(strings.TrimPrefix(pattern, "/admin-api"), "/")
 
-			// 行格式："GET /admin-api/xxx" 或 "/admin-api/xxx"（不带方法 = 全部方法）
-			pattern := line
-			if fields := strings.Fields(line); len(fields) == 2 {
-				if !strings.EqualFold(fields[0], method) {
-					continue
-				}
-				pattern = fields[1]
-			}
-			pattern = strings.Trim(strings.TrimPrefix(pattern, "/admin-api"), "/")
-
-			if matchPattern(pattern, path) {
-				return true
-			}
+		if matchPattern(pattern, path) {
+			return true
 		}
 	}
 

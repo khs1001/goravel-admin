@@ -46,7 +46,11 @@ func isGetData(ctx contractshttp.Context) bool {
 
 // idList 解析批量删除的 id 列表（query `ids` 逗号分隔）。
 func idList(ctx contractshttp.Context) []int {
-	raw := ctx.Request().Query("ids", "")
+	return parseIDList(ctx.Request().Query("ids", ""))
+}
+
+// parseIDList 解析逗号分隔的 id 串，跳过非法与非正数项。
+func parseIDList(raw string) []int {
 	if raw == "" {
 		return nil
 	}
