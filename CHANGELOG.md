@@ -2,6 +2,10 @@
 
 所有 notable changes 记录于此。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [v0.1.11] — 修复
+
+- 修复 `LoginLogJob` 未注册进 Queue JobStorer：未注册 signature 的任务被 worker 认领后永久卡在 reserved 状态（不消费、不进 failed_jobs、无错误日志）。新增队列任务必须 `facades.Queue().Register`
+
 ## [v0.1.10] — 登录日志
 
 - 新增 `admin_login_logs` 表（迁移 20260101000008，含"登录日志"菜单与查看权限的幂等 seed）
