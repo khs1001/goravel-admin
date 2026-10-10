@@ -6,6 +6,7 @@ import (
 
 	"github.com/khs1001/goravel-admin/models"
 	"github.com/khs1001/goravel-admin/pages"
+	"github.com/khs1001/goravel-admin/services"
 	"github.com/khs1001/goravel-admin/support"
 )
 
@@ -15,6 +16,8 @@ type AuthController struct{}
 func NewAuthController() *AuthController { return &AuthController{} }
 
 // Login POST /admin-api/login
+// 内置基于 IP 的登录失败限流：连续失败 ADMIN_LOGIN_MAX_ATTEMPTS 次
+// （默认 5）锁定 ADMIN_LOGIN_LOCK_MINUTES 分钟（默认 10），成功登录后清零。
 func (r *AuthController) Login(ctx contractshttp.Context) contractshttp.Response {
 	username := ctx.Request().Input("username")
 	password := ctx.Request().Input("password")
@@ -26,15 +29,27 @@ func (r *AuthController) Login(ctx contractshttp.Context) contractshttp.Response
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("密码不能为空"))
 	}
 
+	throttle := services.NewLoginThrottle()
+	ip := ctx.Request().Ip()
+	if throttle.TooManyAttempts(ip) {
+		facades.Log().Warningf("[admin] login throttled for ip %s (user %s)", ip, username)
+
+		return ctx.Response().Json(contractshttp.StatusOK, support.Fail(services.LoginThrottleMessage(services.DefaultLoginLockMinutes)))
+	}
+
 	var user models.AdminUser
 	if err := facades.Orm().Query().Where("username", username).First(&user); err != nil {
 		facades.Log().Warningf("[admin] query user %s failed: %v", username, err)
 	}
 	if user.ID == 0 || !facades.Hash().Check(password, user.Password) {
+		throttle.Hit(ip)
+
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("登录失败，请检查用户名或密码"))
 	}
 
 	if !user.IsEnabled() {
+		throttle.Hit(ip)
+
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("用户被禁用"))
 	}
 
@@ -44,6 +59,8 @@ func (r *AuthController) Login(ctx contractshttp.Context) contractshttp.Response
 
 		return ctx.Response().Json(contractshttp.StatusOK, support.Fail("登录失败："+err.Error()))
 	}
+
+	throttle.Clear(ip)
 
 	return ctx.Response().Json(contractshttp.StatusOK, support.Success(map[string]any{"token": token}, "登录成功"))
 }
