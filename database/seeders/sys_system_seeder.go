@@ -35,7 +35,54 @@ func (s *SysSystemSeeder) Run() error {
 		return err
 	}
 
-	return s.seedLogMenus()
+	if err := s.seedLogMenus(); err != nil {
+		return err
+	}
+
+	return s.seedExtensionMenu()
+}
+
+// seedExtensionMenu adds the plugin extension-management menu (idempotent).
+func (s *SysSystemSeeder) seedExtensionMenu() error {
+	existing, err := facades.Orm().Query().Model(&models.SysMenu{}).Where("perms", "system:extension:list").Count()
+	if err != nil {
+		return err
+	}
+	if existing > 0 {
+		return nil
+	}
+
+	var system models.SysMenu
+	if err := facades.Orm().Query().Where("path", "/system").Where("menu_type", models.MenuTypeDir).FirstOrFail(&system); err != nil {
+		return nil
+	}
+
+	menu := models.SysMenu{
+		MenuName: "扩展管理", ParentID: system.MenuID, OrderNum: 8,
+		Path: "/system/extension", Component: "system_extension", Perms: "system:extension:list",
+		MenuType: models.MenuTypeMenu, Icon: "mdi:puzzle-outline", Visible: "0", Status: "0",
+	}
+	if err := facades.Orm().Query().Create(&menu); err != nil {
+		return err
+	}
+	_ = facades.Orm().Query().Create(&models.SysRoleMenu{RoleID: 1, MenuID: menu.MenuID})
+
+	buttons := []struct{ name, perm string }{
+		{"扩展查询", "system:extension:list"},
+		{"扩展启停", "system:extension:toggle"},
+	}
+	for i, button := range buttons {
+		buttonMenu := models.SysMenu{
+			MenuName: button.name, ParentID: menu.MenuID, OrderNum: i + 1,
+			Perms: button.perm, MenuType: models.MenuTypeButton, Visible: "0", Status: "0",
+		}
+		if err := facades.Orm().Query().Create(&buttonMenu); err != nil {
+			return err
+		}
+		_ = facades.Orm().Query().Create(&models.SysRoleMenu{RoleID: 1, MenuID: buttonMenu.MenuID})
+	}
+
+	return nil
 }
 
 // seedLogMenus adds the log-management menus (idempotent).
@@ -143,7 +190,7 @@ func (s *SysSystemSeeder) seedDept() error {
 
 	// Attach the built-in administrator to the root department.
 	var admin models.SysUser
-	if err := facades.Orm().Query().Where("user_id", 1).First(&admin); err == nil {
+	if err := facades.Orm().Query().Where("user_id", 1).FirstOrFail(&admin); err == nil {
 		admin.DeptID = root.DeptID
 		_ = facades.Orm().Query().Save(&admin)
 	}
@@ -238,7 +285,7 @@ func (s *SysSystemSeeder) seedMenus() error {
 	}
 
 	var system models.SysMenu
-	if err := facades.Orm().Query().Where("path", "/system").Where("menu_type", models.MenuTypeDir).First(&system); err != nil {
+	if err := facades.Orm().Query().Where("path", "/system").Where("menu_type", models.MenuTypeDir).FirstOrFail(&system); err != nil {
 		return nil
 	}
 

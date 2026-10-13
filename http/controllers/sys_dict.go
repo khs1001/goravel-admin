@@ -55,7 +55,7 @@ func (c *SysDictController) TypeGet(ctx http.Context) http.Response {
 	}
 
 	var item models.SysDictType
-	if err := facades.Orm().Query().Where("dict_id", ctx.Request().RouteInt("id")).First(&item); err != nil {
+	if err := facades.Orm().Query().Where("dict_id", ctx.Request().RouteInt("id")).FirstOrFail(&item); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("字典类型不存在"))
 	}
 
@@ -96,7 +96,7 @@ func (c *SysDictController) TypeEdit(ctx http.Context) http.Response {
 	}
 
 	var item models.SysDictType
-	if err := facades.Orm().Query().Where("dict_id", ctx.Request().InputInt("dictId")).First(&item); err != nil {
+	if err := facades.Orm().Query().Where("dict_id", ctx.Request().InputInt("dictId")).FirstOrFail(&item); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("字典类型不存在"))
 	}
 
@@ -123,7 +123,7 @@ func (c *SysDictController) TypeRemove(ctx http.Context) http.Response {
 	id := ctx.Request().RouteInt("id")
 
 	var item models.SysDictType
-	if err := facades.Orm().Query().Where("dict_id", id).First(&item); err != nil {
+	if err := facades.Orm().Query().Where("dict_id", id).FirstOrFail(&item); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("字典类型不存在"))
 	}
 
@@ -181,7 +181,7 @@ func (c *SysDictController) DataGet(ctx http.Context) http.Response {
 	}
 
 	var item models.SysDictData
-	if err := facades.Orm().Query().Where("dict_code", ctx.Request().RouteInt("id")).First(&item); err != nil {
+	if err := facades.Orm().Query().Where("dict_code", ctx.Request().RouteInt("id")).FirstOrFail(&item); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("字典数据不存在"))
 	}
 
@@ -213,7 +213,7 @@ func (c *SysDictController) DataEdit(ctx http.Context) http.Response {
 	}
 
 	var item models.SysDictData
-	if err := facades.Orm().Query().Where("dict_code", ctx.Request().InputInt("dictCode")).First(&item); err != nil {
+	if err := facades.Orm().Query().Where("dict_code", ctx.Request().InputInt("dictCode")).FirstOrFail(&item); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("字典数据不存在"))
 	}
 

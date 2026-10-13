@@ -51,7 +51,7 @@ func (c *SysMenuController) Get(ctx http.Context) http.Response {
 	}
 
 	var menu models.SysMenu
-	if err := facades.Orm().Query().Where("menu_id", ctx.Request().RouteInt("id")).First(&menu); err != nil {
+	if err := facades.Orm().Query().Where("menu_id", ctx.Request().RouteInt("id")).FirstOrFail(&menu); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("菜单不存在"))
 	}
 
@@ -83,7 +83,7 @@ func (c *SysMenuController) Edit(ctx http.Context) http.Response {
 	}
 
 	var menu models.SysMenu
-	if err := facades.Orm().Query().Where("menu_id", ctx.Request().InputInt("menuId")).First(&menu); err != nil {
+	if err := facades.Orm().Query().Where("menu_id", ctx.Request().InputInt("menuId")).FirstOrFail(&menu); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("菜单不存在"))
 	}
 

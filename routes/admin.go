@@ -16,6 +16,7 @@ import (
 
 	"github.com/khs1001/goravel-admin/http/controllers"
 	"github.com/khs1001/goravel-admin/http/middleware"
+	"github.com/khs1001/goravel-admin/support/plugin"
 )
 
 // Admin registers the API, the SPA entry and the static assets.
@@ -45,6 +46,7 @@ func Admin(router route.Route) {
 	uploadController := controllers.NewUploadController()
 	operLogController := controllers.NewSysOperLogController()
 	loginLogController := controllers.NewSysLogininforController()
+	extensionController := controllers.NewSysExtensionController()
 
 	router.Prefix(prefix).Group(func(router route.Router) {
 		// Public endpoints.
@@ -143,7 +145,17 @@ func Admin(router route.Route) {
 				router.Get("/logininfor/list", loginLogController.List)
 				router.Delete("/logininfor/clean", loginLogController.Clean)
 				router.Delete("/logininfor/{id}", loginLogController.Remove)
+
+				// Extension management (sys_extension).
+				router.Get("/extension/list", extensionController.List)
+				router.Post("/extension/toggle", extensionController.Toggle)
+				router.Delete("/extension/clean", extensionController.Clean)
 			})
+
+			// Plugin routes: registered on a sub-router already wrapped with the
+			// admin auth + operation-log middleware; each plugin additionally gets
+			// the plugin guard (404 when disabled).
+			plugin.R().RegisterRoutes(router, middleware.PluginGuard)
 		})
 	})
 }

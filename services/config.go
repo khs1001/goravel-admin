@@ -23,7 +23,7 @@ func NewConfigService() *ConfigService {
 // Get returns the raw string value of a config key, or def when missing.
 func (s *ConfigService) Get(key, def string) string {
 	var config models.SysConfig
-	if err := facades.Orm().Query().Where("config_key", key).First(&config); err != nil {
+	if err := facades.Orm().Query().Where("config_key", key).FirstOrFail(&config); err != nil {
 		return def
 	}
 	if config.ConfigValue == "" {
@@ -36,7 +36,7 @@ func (s *ConfigService) Get(key, def string) string {
 // Set stores a string value for a config key, creating the row if needed.
 func (s *ConfigService) Set(key, value string) error {
 	var config models.SysConfig
-	err := facades.Orm().Query().Where("config_key", key).First(&config)
+	err := facades.Orm().Query().Where("config_key", key).FirstOrFail(&config)
 	if err != nil {
 		return facades.Orm().Query().Create(&models.SysConfig{
 			ConfigName:  key,

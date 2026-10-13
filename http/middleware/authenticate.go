@@ -7,6 +7,7 @@ import (
 	"github.com/khs1001/goravel-admin/models"
 	"github.com/khs1001/goravel-admin/support/current"
 	"github.com/khs1001/goravel-admin/support/owl"
+	"github.com/khs1001/goravel-admin/support/plugin"
 )
 
 // Authenticate parses the JWT bearer token, resolves the admin user and stores
@@ -45,6 +46,7 @@ func (m *Authenticate) Handle(ctx http.Context) {
 	}
 
 	current.Set(ctx, &user)
+	plugin.R().RunUserAuthenticated(ctx, &user)
 
 	ctx.Request().Next()
 }

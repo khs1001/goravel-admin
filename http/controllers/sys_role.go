@@ -51,7 +51,7 @@ func (c *SysRoleController) Get(ctx http.Context) http.Response {
 	}
 
 	var role models.SysRole
-	if err := facades.Orm().Query().Where("role_id", ctx.Request().RouteInt("id")).First(&role); err != nil {
+	if err := facades.Orm().Query().Where("role_id", ctx.Request().RouteInt("id")).FirstOrFail(&role); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("角色不存在"))
 	}
 
@@ -96,7 +96,7 @@ func (c *SysRoleController) Edit(ctx http.Context) http.Response {
 	}
 
 	var role models.SysRole
-	if err := facades.Orm().Query().Where("role_id", ctx.Request().InputInt("roleId")).First(&role); err != nil {
+	if err := facades.Orm().Query().Where("role_id", ctx.Request().InputInt("roleId")).FirstOrFail(&role); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("角色不存在"))
 	}
 

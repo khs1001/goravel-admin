@@ -77,7 +77,7 @@ func (c *SysUserController) Get(ctx http.Context) http.Response {
 	}
 
 	var user models.SysUser
-	if err := facades.Orm().Query().Where("user_id", ctx.Request().RouteInt("id")).First(&user); err != nil {
+	if err := facades.Orm().Query().Where("user_id", ctx.Request().RouteInt("id")).FirstOrFail(&user); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("用户不存在"))
 	}
 
@@ -137,7 +137,7 @@ func (c *SysUserController) Edit(ctx http.Context) http.Response {
 	}
 
 	var user models.SysUser
-	if err := facades.Orm().Query().Where("user_id", ctx.Request().InputInt("userId")).First(&user); err != nil {
+	if err := facades.Orm().Query().Where("user_id", ctx.Request().InputInt("userId")).FirstOrFail(&user); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("用户不存在"))
 	}
 

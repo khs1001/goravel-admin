@@ -1,0 +1,45 @@
+{
+  "type": "page",
+  "title": "扩展管理",
+  "body": {
+    "type": "crud",
+    "api": "get:/admin-api/system/extension/list",
+    "syncLocation": false,
+    "headerToolbar": [
+      {
+        "type": "button",
+        "label": "清理失效记录",
+        "level": "danger",
+        "actionType": "ajax",
+        "confirmText": "确认清理已卸载插件的历史记录？",
+        "api": "delete:/admin-api/system/extension/clean"
+      },
+      {"type": "reload", "align": "right"}
+    ],
+    "columns": [
+      {"name": "name", "label": "插件标识"},
+      {"name": "version", "label": "版本", "width": 100},
+      {"name": "description", "label": "描述"},
+      {"name": "author", "label": "作者"},
+      {"name": "enabled", "label": "状态", "width": 90, "type": "mapping", "map": {"0": "禁用", "1": "启用"}},
+      {
+        "type": "operation",
+        "label": "操作",
+        "buttons": [
+          {
+            "type": "button",
+            "label": "启用/禁用",
+            "level": "link",
+            "actionType": "ajax",
+            "confirmText": "确认切换该插件的启用状态？",
+            "api": "post:/admin-api/system/extension/toggle",
+            "data": {
+              "name": "${name}",
+              "enabled": "${enabled == 1 ? 0 : 1}"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

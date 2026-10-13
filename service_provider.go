@@ -11,6 +11,7 @@ import (
 	"github.com/khs1001/goravel-admin/database/migrations"
 	"github.com/khs1001/goravel-admin/database/seeders"
 	"github.com/khs1001/goravel-admin/routes"
+	"github.com/khs1001/goravel-admin/support/plugin"
 )
 
 // Binding is the container key of the package service. It is also the config
@@ -65,28 +66,42 @@ func (r *ServiceProvider) Register(app foundation.Application) {
 // Boot wires every resource layer at runtime through the foundation
 // Application, so package install/uninstall stays symmetric and idempotent.
 func (r *ServiceProvider) Boot(app foundation.Application) {
+	// Discover plugins from the container bindings first, so routes / menus /
+	// migrations / commands can include their contributions.
+	plugin.Discover(app)
+
 	if router := app.MakeRoute(); router != nil {
 		routes.Admin(router)
 	}
 
-	app.Commands([]console.Command{
+	allCommands := []console.Command{
 		&commands.CreateUser{},
 		&commands.ResetPassword{},
-	})
+		&commands.PluginEnable{},
+		&commands.PluginDisable{},
+		&commands.PluginClean{},
+	}
+	allCommands = append(allCommands, plugin.R().Commands()...)
+	app.Commands(allCommands)
 
 	if schemaInstance := app.MakeSchema(); schemaInstance != nil {
-		schemaInstance.Register([]schema.Migration{
+		allMigrations := []schema.Migration{
 			&migrations.CreateSysTables{},
 			&migrations.CreateSysSystemTables{},
 			&migrations.CreateSysLogTables{},
-		})
+			&migrations.CreateSysExtensionTable{},
+		}
+		allMigrations = append(allMigrations, plugin.R().Migrations()...)
+		schemaInstance.Register(allMigrations)
 	}
 
 	if seederInstance := app.MakeSeeder(); seederInstance != nil {
-		seederInstance.Register([]seeder.Seeder{
+		allSeeders := []seeder.Seeder{
 			&seeders.SysInitSeeder{},
 			&seeders.SysSystemSeeder{},
-		})
+		}
+		allSeeders = append(allSeeders, plugin.R().Seeders()...)
+		seederInstance.Register(allSeeders)
 	}
 
 	// Publish the config template so the host can override it.

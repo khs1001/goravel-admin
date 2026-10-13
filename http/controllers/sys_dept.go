@@ -63,7 +63,7 @@ func (c *SysDeptController) Get(ctx http.Context) http.Response {
 	}
 
 	var dept models.SysDept
-	if err := facades.Orm().Query().Where("dept_id", ctx.Request().RouteInt("id")).First(&dept); err != nil {
+	if err := facades.Orm().Query().Where("dept_id", ctx.Request().RouteInt("id")).FirstOrFail(&dept); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("部门不存在"))
 	}
 
@@ -106,7 +106,7 @@ func (c *SysDeptController) Edit(ctx http.Context) http.Response {
 	}
 
 	var dept models.SysDept
-	if err := facades.Orm().Query().Where("dept_id", ctx.Request().InputInt("deptId")).First(&dept); err != nil {
+	if err := facades.Orm().Query().Where("dept_id", ctx.Request().InputInt("deptId")).FirstOrFail(&dept); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("部门不存在"))
 	}
 
@@ -185,7 +185,7 @@ func (c *SysDeptController) ancestors(parentID uint) string {
 	}
 
 	var parent models.SysDept
-	if err := facades.Orm().Query().Where("dept_id", parentID).First(&parent); err != nil {
+	if err := facades.Orm().Query().Where("dept_id", parentID).FirstOrFail(&parent); err != nil {
 		return "0"
 	}
 

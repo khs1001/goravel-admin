@@ -52,7 +52,7 @@ func (c *SysConfigController) Get(ctx http.Context) http.Response {
 	}
 
 	var item models.SysConfig
-	if err := facades.Orm().Query().Where("config_id", ctx.Request().RouteInt("id")).First(&item); err != nil {
+	if err := facades.Orm().Query().Where("config_id", ctx.Request().RouteInt("id")).FirstOrFail(&item); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("参数不存在"))
 	}
 
@@ -93,7 +93,7 @@ func (c *SysConfigController) Edit(ctx http.Context) http.Response {
 	}
 
 	var item models.SysConfig
-	if err := facades.Orm().Query().Where("config_id", ctx.Request().InputInt("configId")).First(&item); err != nil {
+	if err := facades.Orm().Query().Where("config_id", ctx.Request().InputInt("configId")).FirstOrFail(&item); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("参数不存在"))
 	}
 

@@ -39,6 +39,7 @@
 | 个人设置 | 顶栏「个人设置」页，维护个人资料并可修改密码 |
 | 操作日志 | `sys_oper_log`：写操作中间件自动记录（模块/类型/人员/IP/参数/状态/耗时），页面查询/详情/删除/清空 |
 | 登录日志 | `sys_logininfor`：登录成功/失败/退出自动记录，页面查询/删除/清空 |
+| 插件系统 | 绑定 `admin.plugin.<name>` 即可被发现；按能力接口贡献菜单/路由/页面/设置/资产/命令/迁移/钩子；默认禁用，扩展管理页与 `admin:plugin:*` 命令启停 |
 | 后台命令 | `admin:create-user`、`admin:reset-password` |
 
 暂不包含（后续迭代）：通知公告、定时任务、代码生成器。
@@ -141,6 +142,53 @@ import "github.com/khs1001/goravel-admin/facades"
 facades.Admin().Name()        // "Goravel Admin"
 facades.Admin().RoutePrefix() // "admin-api"
 ```
+
+## 插件系统
+
+其它 Goravel 扩展包可以扩展 goravel-admin 的功能，**无需依赖 goravel-admin**。
+
+### 机制
+
+1. 插件包提供自己的 `ServiceProvider`（由 `package:install` 装入宿主）。
+2. 在 `Register` 里把插件实例绑定到约定键 `admin.plugin.<name>`：
+
+```go
+app.Bind("admin.plugin.blog", func(app foundation.Application) (any, error) {
+    return &BlogPlugin{}, nil
+})
+```
+
+3. goravel-admin 在 `Boot` 扫描 `app.Bindings()`，解析该前缀的键并断言**能力接口**。
+4. 插件在 `sys_extension` 中登记，**默认禁用**，需在「系统管理 → 扩展管理」页或命令启用。
+5. 禁用 = 其运行时贡献（菜单/权限/页面/路由/资产/nav）立即隐藏（路由常驻但经守卫返回 404，无需重启）。
+
+### 能力接口（可选，实现即加载）
+
+基础契约 `Plugin{ Name() string }`（必填）。其余按需实现，签名只用 **Goravel 类型或纯类型**（插件可零依赖）：
+
+| 接口 | 作用 |
+|---|---|
+| `MetadataProvider` | `Version/Description/Author`，供扩展管理页展示 |
+| `MenuProvider` | `Menus() []map[string]any`：菜单节点（title/path/parent/order/icon/perms/component/menuType） |
+| `RouteProvider` | `Routes(router route.Router)`：子路由（前缀 `/admin-api/ext/<name>`，已套鉴权/日志/守卫） |
+| `PageProvider` | `Pages() map[string]map[string]any`：amis 页面（sign 命名空间 `<name>.<short>`） |
+| `SettingProvider` | `Settings() map[string]any`：默认设置（宿主 config ＜ 插件默认 ＜ DB `sys_config`） |
+| `AssetProvider` / `NavProvider` | 注入 `/_settings` 的 `assets`(js/css) 与 `nav` |
+| `CommandProvider` | `Commands() []console.Command` |
+| `MigrationProvider` / `SeederProvider` | 迁移 / 种子（安装期，不受启停门控） |
+| 钩子 | `UserAuthenticatedHook` / `LoginHook` / `LogoutHook` / `OperationLoggedHook` / `MenusBuiltHook` / `SettingsBuiltHook` |
+
+### 命令
+
+```shell
+./artisan admin:plugin:enable  --name=blog
+./artisan admin:plugin:disable --name=blog
+./artisan admin:plugin:clean          # 清理已卸载插件的记录
+```
+
+### 示例
+
+`examples/plugin/` 是一个**零依赖**示例插件（不 import goravel-admin），演示菜单（挂在「系统管理」下）、页面、设置、路由与命令。把它注册进宿主 `bootstrap/providers.go` 即可试用。
 
 ## 测试与验证
 

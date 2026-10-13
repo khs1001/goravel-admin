@@ -11,6 +11,7 @@ import (
 	"github.com/khs1001/goravel-admin/models"
 	"github.com/khs1001/goravel-admin/services"
 	"github.com/khs1001/goravel-admin/support/current"
+	"github.com/khs1001/goravel-admin/support/plugin"
 )
 
 // OperLog records write operations (POST/PUT/DELETE) into `sys_oper_log`.
@@ -41,7 +42,7 @@ func (m *OperLog) Handle(ctx http.Context) {
 
 	status, msg := responseOutcome(ctx)
 
-	services.NewLogService().Operation(models.SysOperLog{
+	entry := models.SysOperLog{
 		Title:         operTitle(ctx.Request().Path()),
 		BusinessType:  businessType(method),
 		RequestMethod: method,
@@ -54,6 +55,18 @@ func (m *OperLog) Handle(ctx http.Context) {
 		ErrorMsg:      msg,
 		OperTime:      carbon.NewDateTime(carbon.Now()),
 		CostTime:      int(time.Since(start).Milliseconds()),
+	}
+
+	services.NewLogService().Operation(entry)
+	plugin.R().RunOperationLogged(ctx, map[string]any{
+		"title":        entry.Title,
+		"businessType": entry.BusinessType,
+		"operName":     entry.OperName,
+		"operUrl":      entry.OperURL,
+		"operIp":       entry.OperIP,
+		"status":       entry.Status,
+		"errorMsg":     entry.ErrorMsg,
+		"costTime":     entry.CostTime,
 	})
 }
 

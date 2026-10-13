@@ -50,7 +50,7 @@ func (r *ResetPassword) Handle(ctx console.Context) error {
 	}
 
 	var user models.SysUser
-	if err := facades.Orm().Query().Where("user_name", username).First(&user); err != nil {
+	if err := facades.Orm().Query().Where("user_name", username).FirstOrFail(&user); err != nil {
 		return errors.New("用户不存在: " + username)
 	}
 

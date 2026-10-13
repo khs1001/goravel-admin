@@ -54,7 +54,7 @@ func (c *SysOperLogController) Get(ctx http.Context) http.Response {
 	}
 
 	var item models.SysOperLog
-	if err := facades.Orm().Query().Where("oper_id", ctx.Request().RouteInt("id")).First(&item); err != nil {
+	if err := facades.Orm().Query().Where("oper_id", ctx.Request().RouteInt("id")).FirstOrFail(&item); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("日志不存在"))
 	}
 

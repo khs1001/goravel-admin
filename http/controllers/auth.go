@@ -10,6 +10,7 @@ import (
 	"github.com/khs1001/goravel-admin/support/captcha"
 	"github.com/khs1001/goravel-admin/support/current"
 	"github.com/khs1001/goravel-admin/support/owl"
+	"github.com/khs1001/goravel-admin/support/plugin"
 )
 
 // AuthController implements the Owl authentication endpoints: /login, /logout,
@@ -30,6 +31,7 @@ func (c *AuthController) Login(ctx http.Context) http.Response {
 
 	fail := func(msg string) http.Response {
 		c.recordLogin(ctx, username, 1, msg)
+		plugin.R().RunLoginFailed(ctx, username, msg)
 		return ctx.Response().Json(http.StatusOK, owl.Fail(msg))
 	}
 
@@ -49,7 +51,7 @@ func (c *AuthController) Login(ctx http.Context) http.Response {
 	}
 
 	var user models.SysUser
-	if err := facades.Orm().Query().Where("user_name", username).Where("del_flag", "0").First(&user); err != nil {
+	if err := facades.Orm().Query().Where("user_name", username).Where("del_flag", "0").FirstOrFail(&user); err != nil {
 		return fail("用户名或密码错误")
 	}
 	if user.Status == "1" {
@@ -69,6 +71,7 @@ func (c *AuthController) Login(ctx http.Context) http.Response {
 	_ = facades.Orm().Query().Save(&user)
 
 	c.recordLogin(ctx, username, 0, "登录成功")
+	plugin.R().RunLoginSucceeded(ctx, username)
 
 	return ctx.Response().Json(http.StatusOK, owl.Success(http.Json{"token": token}, "登录成功"))
 }
@@ -78,6 +81,7 @@ func (c *AuthController) Login(ctx http.Context) http.Response {
 func (c *AuthController) Logout(ctx http.Context) http.Response {
 	if user := current.User(ctx); user != nil {
 		c.recordLogin(ctx, user.UserName, 0, "退出成功")
+		plugin.R().RunLogout(ctx, user.UserName)
 	}
 
 	return ctx.Response().Json(http.StatusOK, owl.Success(nil, "已退出登录"))

@@ -69,7 +69,7 @@ func (c *SysPostController) Get(ctx http.Context) http.Response {
 	}
 
 	var post models.SysPost
-	if err := facades.Orm().Query().Where("post_id", ctx.Request().RouteInt("id")).First(&post); err != nil {
+	if err := facades.Orm().Query().Where("post_id", ctx.Request().RouteInt("id")).FirstOrFail(&post); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("岗位不存在"))
 	}
 
@@ -101,7 +101,7 @@ func (c *SysPostController) Edit(ctx http.Context) http.Response {
 	}
 
 	var post models.SysPost
-	if err := facades.Orm().Query().Where("post_id", ctx.Request().InputInt("postId")).First(&post); err != nil {
+	if err := facades.Orm().Query().Where("post_id", ctx.Request().InputInt("postId")).FirstOrFail(&post); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail("岗位不存在"))
 	}
 
