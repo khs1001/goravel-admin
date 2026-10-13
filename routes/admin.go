@@ -12,6 +12,7 @@ import (
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/contracts/route"
 	"github.com/goravel/framework/facades"
+	supportpath "github.com/goravel/framework/support/path"
 
 	"github.com/khs1001/goravel-admin/http/controllers"
 	"github.com/khs1001/goravel-admin/http/middleware"
@@ -26,6 +27,12 @@ func Admin(router route.Route) {
 
 	registerAssets(router, assets, uiPath)
 
+	// Serve uploads stored on the local `public` disk (storage/app/public) via
+	// `/storage/*`, matching the disk URL, so a symlink is not required.
+	if storageRoot := supportpath.Storage("app/public"); storageRoot != "" {
+		router.Static("storage", storageRoot)
+	}
+
 	authController := controllers.NewAuthController()
 	indexController := controllers.NewIndexController()
 	userController := controllers.NewSysUserController()
@@ -35,6 +42,7 @@ func Admin(router route.Route) {
 	postController := controllers.NewSysPostController()
 	dictController := controllers.NewSysDictController()
 	configController := controllers.NewSysConfigController()
+	uploadController := controllers.NewUploadController()
 
 	router.Prefix(prefix).Group(func(router route.Router) {
 		// Public endpoints.
@@ -49,6 +57,15 @@ func Admin(router route.Route) {
 			router.Get("/current-user", authController.CurrentUser)
 			router.Get("/menus", indexController.Menus)
 			router.Get("/page_schema", indexController.PageSchema)
+
+			// Personal settings.
+			router.Get("/user_setting", authController.UserSetting)
+			router.Put("/user_setting", authController.SaveUserSetting)
+
+			// Uploads.
+			router.Any("/upload_image", uploadController.Image)
+			router.Any("/upload_file", uploadController.File)
+			router.Any("/upload_rich", uploadController.Rich)
 
 			router.Prefix("/system").Group(func(router route.Router) {
 				// User (sys_user).

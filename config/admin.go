@@ -39,6 +39,17 @@ func init() {
 			"token_expiration": config.Env("ADMIN_TOKEN_EXPIRATION", 0),
 		},
 
+		"upload": map[string]any{
+			// The filesystem disk used to store uploads.
+			"disk": config.Env("ADMIN_UPLOAD_DISK", "public"),
+			// Per-type storage directories.
+			"directory": map[string]any{
+				"image": config.Env("ADMIN_UPLOAD_IMAGE_DIRECTORY", "admin/images"),
+				"file":  config.Env("ADMIN_UPLOAD_FILE_DIRECTORY", "admin/files"),
+				"rich":  config.Env("ADMIN_UPLOAD_RICH_DIRECTORY", "admin/rich"),
+			},
+		},
+
 		"layout": map[string]any{
 			"title":  config.Env("ADMIN_SITE_TITLE", "%title% | Goravel Admin"),
 			"footer": "<a href=\"https://github.com/khs1001/goravel-admin\" target=\"_blank\">Goravel Admin</a>",

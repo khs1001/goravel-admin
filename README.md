@@ -35,9 +35,11 @@
 | 字典管理 | `sys_dict_type` + `sys_dict_data` CRUD |
 | 参数设置 | `sys_config` CRUD（同时承载 Owl `/_settings` 的持久化） |
 | 数据权限 | 角色 `data_scope`（全部/自定义/本部门/本部门及以下/仅本人），作用于用户与部门列表 |
+| 文件上传 | `/upload_image`、`/upload_file`、`/upload_rich`（wangEditor 协议），存储于 `public` 磁盘并经 `/storage/*` 访问 |
+| 个人设置 | 顶栏「个人设置」页，维护个人资料并可修改密码 |
 | 后台命令 | `admin:create-user`、`admin:reset-password` |
 
-暂不包含（后续迭代）：通知公告、操作/登录日志、定时任务、代码生成器、文件上传、个人设置页。
+暂不包含（后续迭代）：通知公告、操作/登录日志、定时任务、代码生成器。
 
 ## 安装
 

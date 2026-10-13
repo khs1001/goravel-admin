@@ -104,11 +104,72 @@ func (c *AuthController) CurrentUser(ctx http.Context) http.Response {
 		"id":          user.UserID,
 		"username":    user.UserName,
 		"name":        user.NickName,
+		"nickName":    user.NickName,
+		"email":       user.Email,
+		"phonenumber": user.Phonenumber,
+		"sex":         user.Sex,
 		"avatar":      avatar,
 		"roles":       c.roleKeys(user.UserID),
 		"permissions": perms,
 		"menus":       userMenuSchema(user),
 	}))
+}
+
+// UserSetting returns the current user's editable profile (`GET /user_setting`).
+func (c *AuthController) UserSetting(ctx http.Context) http.Response {
+	user := current.User(ctx)
+	if user == nil {
+		return ctx.Response().Json(http.StatusOK, owl.Unauthorized("请先登录"))
+	}
+
+	return ctx.Response().Json(http.StatusOK, owl.Success(http.Json{
+		"userId":      user.UserID,
+		"username":    user.UserName,
+		"nickName":    user.NickName,
+		"email":       user.Email,
+		"phonenumber": user.Phonenumber,
+		"sex":         user.Sex,
+		"avatar":      user.Avatar,
+	}))
+}
+
+// SaveUserSetting updates the current user's profile (`PUT /user_setting`).
+func (c *AuthController) SaveUserSetting(ctx http.Context) http.Response {
+	user := current.User(ctx)
+	if user == nil {
+		return ctx.Response().Json(http.StatusOK, owl.Unauthorized("请先登录"))
+	}
+
+	user.NickName = ctx.Request().Input("nickName")
+	user.Email = ctx.Request().Input("email")
+	user.Phonenumber = ctx.Request().Input("phonenumber")
+	if sex := ctx.Request().Input("sex"); sex != "" {
+		user.Sex = sex
+	}
+	if avatar := ctx.Request().Input("avatar"); avatar != "" {
+		user.Avatar = avatar
+	}
+
+	if password := ctx.Request().Input("password"); password != "" {
+		oldPassword := ctx.Request().Input("old_password")
+		if !facades.Hash().Check(oldPassword, user.Password) {
+			return ctx.Response().Json(http.StatusOK, owl.Fail("原密码错误"))
+		}
+		if password != ctx.Request().Input("confirm_password") {
+			return ctx.Response().Json(http.StatusOK, owl.Fail("两次输入的密码不一致"))
+		}
+		hashed, err := facades.Hash().Make(password)
+		if err != nil {
+			return ctx.Response().Json(http.StatusOK, owl.Fail(err.Error()))
+		}
+		user.Password = hashed
+	}
+
+	if err := facades.Orm().Query().Save(user); err != nil {
+		return ctx.Response().Json(http.StatusOK, owl.Fail(err.Error()))
+	}
+
+	return ctx.Response().Json(http.StatusOK, owl.Success(nil, "保存成功"))
 }
 
 func (c *AuthController) roleKeys(userID uint) []string {
@@ -149,6 +210,18 @@ func userMenuSchema(user *models.SysUser) map[string]any {
 		"className":    "h-full",
 		"closeOnClick": true,
 		"buttons": []map[string]any{
+			{
+				"type":  "button",
+				"label": "个人设置",
+				"level": "link",
+				"onEvent": map[string]any{
+					"click": map[string]any{
+						"actions": []map[string]any{
+							{"actionType": "custom", "script": "window.location.hash = '#/user_setting'"},
+						},
+					},
+				},
+			},
 			{
 				"type":  "button",
 				"label": "退出登录",

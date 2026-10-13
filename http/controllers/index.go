@@ -36,7 +36,37 @@ func (c *IndexController) Menus(ctx http.Context) http.Response {
 	homeID := menuService.HomeMenuID(menus)
 	tree := owl.BuildMenuTree(menus, 0)
 
-	return ctx.Response().Json(http.StatusOK, owl.Success(owl.ToRoutes(tree, homeID)))
+	routes := owl.ToRoutes(tree, homeID)
+	routes = append(routes, c.extraRoutes()...)
+
+	return ctx.Response().Json(http.StatusOK, owl.Success(routes))
+}
+
+// extraRoutes returns the non-database routes (hidden pages) added on top of the
+// menu tree, e.g. the personal settings page.
+func (c *IndexController) extraRoutes() []map[string]any {
+	if !facades.Config().GetBool("admin.auth.enable", true) {
+		return nil
+	}
+
+	return []map[string]any{
+		{
+			"name":       "user_setting",
+			"path":       "/user_setting",
+			"component":  "amis",
+			"page_sign":  "user_setting",
+			"is_home":    0,
+			"url_type":   owl.UrlTypePage,
+			"keep_alive": 0,
+			"is_full":    0,
+			"is_link":    false,
+			"meta": map[string]any{
+				"hide":  true,
+				"title": "个人设置",
+				"icon":  "material-symbols:manage-accounts",
+			},
+		},
+	}
 }
 
 // Settings assembles the `/_settings` payload.
