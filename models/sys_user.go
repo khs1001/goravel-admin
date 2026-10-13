@@ -4,19 +4,25 @@ import (
 	"github.com/goravel/framework/support/carbon"
 )
 
-// BaseModel carries the common RuoYi audit columns (create_by/create_time/
-// update_by/update_time/remark). Tables that follow RuoYi conventions embed it.
-type BaseModel struct {
+// AuditModel carries the common RuoYi audit columns (create_by/create_time/
+// update_by/update_time) shared by most tables.
+type AuditModel struct {
 	CreateBy   string           `gorm:"column:create_by" json:"createBy"`
 	CreateTime *carbon.DateTime `gorm:"column:create_time;autoCreateTime" json:"createTime"`
 	UpdateBy   string           `gorm:"column:update_by" json:"updateBy"`
 	UpdateTime *carbon.DateTime `gorm:"column:update_time;autoUpdateTime" json:"updateTime"`
-	Remark     string           `gorm:"column:remark" json:"remark"`
+}
+
+// BaseModel is AuditModel plus the RuoYi `remark` column.
+type BaseModel struct {
+	AuditModel
+	Remark string `gorm:"column:remark" json:"remark"`
 }
 
 // SysUser is the RuoYi `sys_user` table.
 type SysUser struct {
 	UserID      uint             `gorm:"column:user_id;primaryKey;autoIncrement" json:"userId"`
+	DeptID      uint             `gorm:"column:dept_id" json:"deptId"`
 	UserName    string           `gorm:"column:user_name" json:"userName"`
 	NickName    string           `gorm:"column:nick_name" json:"nickName"`
 	UserType    string           `gorm:"column:user_type" json:"userType"`
@@ -33,6 +39,8 @@ type SysUser struct {
 
 	// RoleIDs is transient, only used when reading/writing user-role bindings.
 	RoleIDs []uint `gorm:"-" json:"roleIds,omitempty"`
+	// PostIDs is transient, only used when reading/writing user-post bindings.
+	PostIDs []uint `gorm:"-" json:"postIds,omitempty"`
 }
 
 // TableName sets the table name of the model.

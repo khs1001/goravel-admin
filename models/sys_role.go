@@ -15,6 +15,9 @@ type SysRole struct {
 
 	// MenuIDs is transient, only used when reading/writing role-menu bindings.
 	MenuIDs []uint `gorm:"-" json:"menuIds,omitempty"`
+	// DeptIDs is transient, only used when reading/writing role-dept (custom
+	// data scope) bindings.
+	DeptIDs []uint `gorm:"-" json:"deptIds,omitempty"`
 }
 
 // TableName sets the table name of the model.

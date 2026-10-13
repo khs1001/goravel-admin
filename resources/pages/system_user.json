@@ -48,6 +48,8 @@
               {"type": "input-text", "name": "phonenumber", "label": "手机号"},
               {"type": "select", "name": "sex", "label": "性别", "value": "0", "options": [{"label": "男", "value": "0"}, {"label": "女", "value": "1"}]},
               {"type": "select", "name": "status", "label": "状态", "value": "0", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]},
+              {"type": "input-tree", "name": "deptId", "label": "部门", "source": "get:/admin-api/system/dept/tree", "labelField": "deptName", "valueField": "deptId", "childrenField": "children", "clearable": true},
+              {"type": "select", "name": "postIds", "label": "岗位", "multiple": true, "source": "get:/admin-api/system/post/options"},
               {"type": "select", "name": "roleIds", "label": "角色", "multiple": true, "source": "get:/admin-api/system/user/roleOptions"}
             ]
           }
@@ -87,7 +89,9 @@
                   {"type": "input-text", "name": "phonenumber", "label": "手机号"},
                   {"type": "select", "name": "sex", "label": "性别", "options": [{"label": "男", "value": "0"}, {"label": "女", "value": "1"}]},
                   {"type": "select", "name": "status", "label": "状态", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]},
-                  {"type": "select", "name": "roleIds", "label": "角色", "multiple": true, "source": "get:/admin-api/system/user/roleOptions"}
+                  {"type": "input-tree", "name": "deptId", "label": "部门", "source": "get:/admin-api/system/dept/tree", "labelField": "deptName", "valueField": "deptId", "childrenField": "children", "clearable": true},
+              {"type": "select", "name": "postIds", "label": "岗位", "multiple": true, "source": "get:/admin-api/system/post/options"},
+              {"type": "select", "name": "roleIds", "label": "角色", "multiple": true, "source": "get:/admin-api/system/user/roleOptions"}
                 ]
               }
             }

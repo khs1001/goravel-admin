@@ -77,12 +77,14 @@ func (r *ServiceProvider) Boot(app foundation.Application) {
 	if schemaInstance := app.MakeSchema(); schemaInstance != nil {
 		schemaInstance.Register([]schema.Migration{
 			&migrations.CreateSysTables{},
+			&migrations.CreateSysSystemTables{},
 		})
 	}
 
 	if seederInstance := app.MakeSeeder(); seederInstance != nil {
 		seederInstance.Register([]seeder.Seeder{
 			&seeders.SysInitSeeder{},
+			&seeders.SysSystemSeeder{},
 		})
 	}
 

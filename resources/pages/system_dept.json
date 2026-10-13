@@ -1,0 +1,90 @@
+{
+  "type": "page",
+  "title": "部门管理",
+  "body": {
+    "type": "crud",
+    "api": "get:/admin-api/system/dept/list",
+    "syncLocation": false,
+    "childrenColumnName": "children",
+    "filterTogglable": true,
+    "filter": {
+      "title": "查询条件",
+      "body": [
+        {"type": "input-text", "name": "deptName", "label": "部门名称", "size": "md", "clearable": true}
+      ]
+    },
+    "headerToolbar": [
+      {
+        "type": "button",
+        "label": "新增",
+        "level": "primary",
+        "actionType": "dialog",
+        "dialog": {
+          "title": "新增部门",
+          "size": "lg",
+          "body": {
+            "type": "form",
+            "api": "post:/admin-api/system/dept",
+            "body": [
+              {"type": "input-tree", "name": "parentId", "label": "上级部门", "value": 0, "source": "get:/admin-api/system/dept/tree", "labelField": "deptName", "valueField": "deptId", "childrenField": "children", "clearable": true},
+              {"type": "input-text", "name": "deptName", "label": "部门名称", "required": true},
+              {"type": "input-number", "name": "orderNum", "label": "显示顺序", "value": 1},
+              {"type": "input-text", "name": "leader", "label": "负责人"},
+              {"type": "input-text", "name": "phone", "label": "联系电话"},
+              {"type": "input-text", "name": "email", "label": "邮箱"},
+              {"type": "select", "name": "status", "label": "状态", "value": "0", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]}
+            ]
+          }
+        }
+      },
+      {"type": "reload", "align": "right"}
+    ],
+    "columns": [
+      {"name": "deptName", "label": "部门名称"},
+      {"name": "orderNum", "label": "顺序", "width": 80},
+      {"name": "leader", "label": "负责人"},
+      {"name": "phone", "label": "联系电话"},
+      {"name": "status", "label": "状态", "type": "mapping", "map": {"0": "正常", "1": "停用"}},
+      {
+        "type": "operation",
+        "label": "操作",
+        "buttons": [
+          {
+            "type": "button",
+            "label": "编辑",
+            "level": "link",
+            "actionType": "dialog",
+            "dialog": {
+              "title": "编辑部门",
+              "size": "lg",
+              "body": {
+                "type": "form",
+                "api": "put:/admin-api/system/dept",
+                "initApi": "get:/admin-api/system/dept/${deptId}",
+                "body": [
+                  {"type": "hidden", "name": "deptId"},
+                  {"type": "input-tree", "name": "parentId", "label": "上级部门", "source": "get:/admin-api/system/dept/tree", "labelField": "deptName", "valueField": "deptId", "childrenField": "children", "clearable": true},
+                  {"type": "input-text", "name": "deptName", "label": "部门名称", "required": true},
+                  {"type": "input-number", "name": "orderNum", "label": "显示顺序"},
+                  {"type": "input-text", "name": "leader", "label": "负责人"},
+                  {"type": "input-text", "name": "phone", "label": "联系电话"},
+                  {"type": "input-text", "name": "email", "label": "邮箱"},
+                  {"type": "select", "name": "status", "label": "状态", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]}
+                ]
+              }
+            }
+          },
+          {
+            "type": "button",
+            "label": "删除",
+            "level": "link",
+            "className": "text-danger",
+            "actionType": "ajax",
+            "confirmText": "确认删除该部门？",
+            "api": "delete:/admin-api/system/dept/${deptId}"
+          }
+        ]
+      }
+    ]
+  }
+}

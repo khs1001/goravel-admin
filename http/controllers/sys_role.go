@@ -56,6 +56,7 @@ func (c *SysRoleController) Get(ctx http.Context) http.Response {
 	}
 
 	role.MenuIDs = c.menuIDs(role.RoleID)
+	role.DeptIDs = c.deptIDs(role.RoleID)
 
 	return ctx.Response().Json(http.StatusOK, owl.Success(role))
 }
@@ -83,6 +84,7 @@ func (c *SysRoleController) Add(ctx http.Context) http.Response {
 	}
 
 	c.assignMenus(role.RoleID, ctx.Request().InputArray("menuIds"))
+	c.assignDepts(role.RoleID, ctx.Request().InputArray("deptIds"))
 
 	return ctx.Response().Json(http.StatusOK, owl.Success(nil, "新增成功"))
 }
@@ -113,6 +115,7 @@ func (c *SysRoleController) Edit(ctx http.Context) http.Response {
 	}
 
 	c.assignMenus(role.RoleID, ctx.Request().InputArray("menuIds"))
+	c.assignDepts(role.RoleID, ctx.Request().InputArray("deptIds"))
 
 	return ctx.Response().Json(http.StatusOK, owl.Success(nil, "修改成功"))
 }
@@ -129,6 +132,12 @@ func (c *SysRoleController) Remove(ctx http.Context) http.Response {
 	}
 
 	if _, err := facades.Orm().Query().Where("role_id", id).Delete(&models.SysRoleMenu{}); err != nil {
+		return ctx.Response().Json(http.StatusOK, owl.Fail(err.Error()))
+	}
+	if _, err := facades.Orm().Query().Where("role_id", id).Delete(&models.SysRoleDept{}); err != nil {
+		return ctx.Response().Json(http.StatusOK, owl.Fail(err.Error()))
+	}
+	if _, err := facades.Orm().Query().Where("role_id", id).Delete(&models.SysUserRole{}); err != nil {
 		return ctx.Response().Json(http.StatusOK, owl.Fail(err.Error()))
 	}
 	if _, err := facades.Orm().Query().Where("role_id", id).Delete(&models.SysRole{}); err != nil {
@@ -188,5 +197,55 @@ func (c *SysRoleController) assignMenus(roleID uint, menuIDs []string) {
 			continue
 		}
 		_ = facades.Orm().Query().Create(&models.SysRoleMenu{RoleID: roleID, MenuID: menuID})
+	}
+}
+
+// DeptTree returns the department tree plus the ids granted to a role, used for
+// the "custom" data scope (`GET /system/role/deptTree/{id}`).
+func (c *SysRoleController) DeptTree(ctx http.Context) http.Response {
+	if resp := c.denied(ctx, "system:role:query"); resp != nil {
+		return resp
+	}
+
+	var depts []models.SysDept
+	if err := facades.Orm().Query().Where("del_flag", "0").OrderBy("order_num").Get(&depts); err != nil {
+		return ctx.Response().Json(http.StatusOK, owl.Fail(err.Error()))
+	}
+
+	return ctx.Response().Json(http.StatusOK, owl.Success(http.Json{
+		"depts":       owl.BuildDeptTree(depts, 0),
+		"checkedKeys": c.deptIDs(uint(ctx.Request().RouteInt("id"))),
+	}))
+}
+
+func (c *SysRoleController) deptIDs(roleID uint) []uint {
+	var bindings []models.SysRoleDept
+	if err := facades.Orm().Query().Where("role_id", roleID).Get(&bindings); err != nil {
+		return []uint{}
+	}
+
+	ids := make([]uint, 0, len(bindings))
+	for _, binding := range bindings {
+		ids = append(ids, binding.DeptID)
+	}
+
+	return ids
+}
+
+func (c *SysRoleController) assignDepts(roleID uint, deptIDs []string) {
+	if roleID == 0 {
+		return
+	}
+
+	if _, err := facades.Orm().Query().Where("role_id", roleID).Delete(&models.SysRoleDept{}); err != nil {
+		return
+	}
+
+	for _, raw := range deptIDs {
+		deptID := parseUint(raw)
+		if deptID == 0 {
+			continue
+		}
+		_ = facades.Orm().Query().Create(&models.SysRoleDept{RoleID: roleID, DeptID: deptID})
 	}
 }

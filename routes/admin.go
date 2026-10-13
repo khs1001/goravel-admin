@@ -31,6 +31,10 @@ func Admin(router route.Route) {
 	userController := controllers.NewSysUserController()
 	roleController := controllers.NewSysRoleController()
 	menuController := controllers.NewSysMenuController()
+	deptController := controllers.NewSysDeptController()
+	postController := controllers.NewSysPostController()
+	dictController := controllers.NewSysDictController()
+	configController := controllers.NewSysConfigController()
 
 	router.Prefix(prefix).Group(func(router route.Router) {
 		// Public endpoints.
@@ -58,6 +62,7 @@ func Admin(router route.Route) {
 				// Role (sys_role).
 				router.Get("/role/list", roleController.List)
 				router.Get("/role/menuTree/{id}", roleController.MenuTree)
+				router.Get("/role/deptTree/{id}", roleController.DeptTree)
 				router.Get("/role/{id}", roleController.Get)
 				router.Post("/role", roleController.Add)
 				router.Put("/role", roleController.Edit)
@@ -70,6 +75,44 @@ func Admin(router route.Route) {
 				router.Post("/menu", menuController.Add)
 				router.Put("/menu", menuController.Edit)
 				router.Delete("/menu/{id}", menuController.Remove)
+
+				// Dept (sys_dept).
+				router.Get("/dept/list", deptController.List)
+				router.Get("/dept/tree", deptController.Tree)
+				router.Get("/dept/{id}", deptController.Get)
+				router.Post("/dept", deptController.Add)
+				router.Put("/dept", deptController.Edit)
+				router.Delete("/dept/{id}", deptController.Remove)
+
+				// Post (sys_post).
+				router.Get("/post/list", postController.List)
+				router.Get("/post/options", postController.Options)
+				router.Get("/post/{id}", postController.Get)
+				router.Post("/post", postController.Add)
+				router.Put("/post", postController.Edit)
+				router.Delete("/post/{id}", postController.Remove)
+
+				// Dict type (sys_dict_type).
+				router.Get("/dict/type/list", dictController.TypeList)
+				router.Get("/dict/type/{id}", dictController.TypeGet)
+				router.Post("/dict/type", dictController.TypeAdd)
+				router.Put("/dict/type", dictController.TypeEdit)
+				router.Delete("/dict/type/{id}", dictController.TypeRemove)
+
+				// Dict data (sys_dict_data).
+				router.Get("/dict/data/list", dictController.DataList)
+				router.Get("/dict/data/type/{dictType}", dictController.DataByType)
+				router.Get("/dict/data/{id}", dictController.DataGet)
+				router.Post("/dict/data", dictController.DataAdd)
+				router.Put("/dict/data", dictController.DataEdit)
+				router.Delete("/dict/data/{id}", dictController.DataRemove)
+
+				// Config / parameters (sys_config).
+				router.Get("/config/list", configController.List)
+				router.Get("/config/{id}", configController.Get)
+				router.Post("/config", configController.Add)
+				router.Put("/config", configController.Edit)
+				router.Delete("/config/{id}", configController.Remove)
 			})
 		})
 	})

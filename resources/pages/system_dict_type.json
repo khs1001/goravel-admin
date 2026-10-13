@@ -1,0 +1,168 @@
+{
+  "type": "page",
+  "title": "字典管理",
+  "body": {
+    "type": "crud",
+    "api": "get:/admin-api/system/dict/type/list",
+    "filterTogglable": true,
+    "filter": {
+      "title": "查询条件",
+      "body": [
+        {"type": "input-text", "name": "dictName", "label": "字典名称", "size": "md", "clearable": true},
+        {"type": "input-text", "name": "dictType", "label": "字典类型", "size": "md", "clearable": true}
+      ]
+    },
+    "headerToolbar": [
+      {
+        "type": "button",
+        "label": "新增",
+        "level": "primary",
+        "actionType": "dialog",
+        "dialog": {
+          "title": "新增字典类型",
+          "size": "lg",
+          "body": {
+            "type": "form",
+            "api": "post:/admin-api/system/dict/type",
+            "body": [
+              {"type": "input-text", "name": "dictName", "label": "字典名称", "required": true},
+              {"type": "input-text", "name": "dictType", "label": "字典类型", "required": true},
+              {"type": "select", "name": "status", "label": "状态", "value": "0", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]},
+              {"type": "textarea", "name": "remark", "label": "备注"}
+            ]
+          }
+        }
+      },
+      {"type": "reload", "align": "right"}
+    ],
+    "columns": [
+      {"name": "dictId", "label": "ID", "width": 80},
+      {"name": "dictName", "label": "字典名称"},
+      {"name": "dictType", "label": "字典类型"},
+      {"name": "status", "label": "状态", "type": "mapping", "map": {"0": "正常", "1": "停用"}},
+      {
+        "type": "operation",
+        "label": "操作",
+        "buttons": [
+          {
+            "type": "button",
+            "label": "字典数据",
+            "level": "link",
+            "actionType": "drawer",
+            "drawer": {
+              "title": "字典数据 - ${dictType}",
+              "size": "xl",
+              "body": {
+                "type": "crud",
+                "api": "get:/admin-api/system/dict/data/list?dictType=${dictType}",
+                "headerToolbar": [
+                  {
+                    "type": "button",
+                    "label": "新增",
+                    "level": "primary",
+                    "actionType": "dialog",
+                    "dialog": {
+                      "title": "新增字典数据",
+                      "size": "lg",
+                      "body": {
+                        "type": "form",
+                        "api": "post:/admin-api/system/dict/data",
+                        "body": [
+                          {"type": "hidden", "name": "dictType", "value": "${dictType}"},
+                          {"type": "input-text", "name": "dictLabel", "label": "字典标签", "required": true},
+                          {"type": "input-text", "name": "dictValue", "label": "字典键值", "required": true},
+                          {"type": "input-number", "name": "dictSort", "label": "显示顺序", "value": 1},
+                          {"type": "select", "name": "isDefault", "label": "是否默认", "value": "N", "options": [{"label": "是", "value": "Y"}, {"label": "否", "value": "N"}]},
+                          {"type": "select", "name": "status", "label": "状态", "value": "0", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]},
+                          {"type": "textarea", "name": "remark", "label": "备注"}
+                        ]
+                      }
+                    }
+                  },
+                  {"type": "reload", "align": "right"}
+                ],
+                "columns": [
+                  {"name": "dictLabel", "label": "字典标签"},
+                  {"name": "dictValue", "label": "字典键值"},
+                  {"name": "dictSort", "label": "顺序", "width": 80},
+                  {"name": "isDefault", "label": "默认", "type": "mapping", "map": {"Y": "是", "N": "否"}},
+                  {"name": "status", "label": "状态", "type": "mapping", "map": {"0": "正常", "1": "停用"}},
+                  {
+                    "type": "operation",
+                    "label": "操作",
+                    "buttons": [
+                      {
+                        "type": "button",
+                        "label": "编辑",
+                        "level": "link",
+                        "actionType": "dialog",
+                        "dialog": {
+                          "title": "编辑字典数据",
+                          "size": "lg",
+                          "body": {
+                            "type": "form",
+                            "api": "put:/admin-api/system/dict/data",
+                            "initApi": "get:/admin-api/system/dict/data/${dictCode}",
+                            "body": [
+                              {"type": "hidden", "name": "dictCode"},
+                              {"type": "input-text", "name": "dictLabel", "label": "字典标签", "required": true},
+                              {"type": "input-text", "name": "dictValue", "label": "字典键值", "required": true},
+                              {"type": "input-number", "name": "dictSort", "label": "显示顺序"},
+                              {"type": "select", "name": "isDefault", "label": "是否默认", "options": [{"label": "是", "value": "Y"}, {"label": "否", "value": "N"}]},
+                              {"type": "select", "name": "status", "label": "状态", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]},
+                              {"type": "textarea", "name": "remark", "label": "备注"}
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "type": "button",
+                        "label": "删除",
+                        "level": "link",
+                        "className": "text-danger",
+                        "actionType": "ajax",
+                        "confirmText": "确认删除该字典数据？",
+                        "api": "delete:/admin-api/system/dict/data/${dictCode}"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "type": "button",
+            "label": "编辑",
+            "level": "link",
+            "actionType": "dialog",
+            "dialog": {
+              "title": "编辑字典类型",
+              "size": "lg",
+              "body": {
+                "type": "form",
+                "api": "put:/admin-api/system/dict/type",
+                "initApi": "get:/admin-api/system/dict/type/${dictId}",
+                "body": [
+                  {"type": "hidden", "name": "dictId"},
+                  {"type": "input-text", "name": "dictName", "label": "字典名称", "required": true},
+                  {"type": "input-text", "name": "dictType", "label": "字典类型", "required": true},
+                  {"type": "select", "name": "status", "label": "状态", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]},
+                  {"type": "textarea", "name": "remark", "label": "备注"}
+                ]
+              }
+            }
+          },
+          {
+            "type": "button",
+            "label": "删除",
+            "level": "link",
+            "className": "text-danger",
+            "actionType": "ajax",
+            "confirmText": "确认删除该字典类型及其数据？",
+            "api": "delete:/admin-api/system/dict/type/${dictId}"
+          }
+        ]
+      }
+    ]
+  }
+}

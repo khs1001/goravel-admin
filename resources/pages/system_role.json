@@ -29,6 +29,8 @@
               {"type": "input-text", "name": "roleKey", "label": "权限字符", "required": true},
               {"type": "input-number", "name": "roleSort", "label": "显示顺序", "value": 1},
               {"type": "select", "name": "status", "label": "状态", "value": "0", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]},
+              {"type": "select", "name": "dataScope", "label": "数据范围", "value": "1", "options": [{"label": "全部数据", "value": "1"}, {"label": "自定义数据", "value": "2"}, {"label": "本部门数据", "value": "3"}, {"label": "本部门及以下", "value": "4"}, {"label": "仅本人数据", "value": "5"}]},
+              {"type": "input-tree", "name": "deptIds", "label": "数据权限", "source": "get:/admin-api/system/dept/tree", "labelField": "deptName", "valueField": "deptId", "childrenField": "children", "checkable": true, "multiple": true, "joinValues": false, "extractValue": true, "height": 220, "visibleOn": "${dataScope == '2'}"},
               {
                 "type": "input-tree",
                 "name": "menuIds",
@@ -77,6 +79,8 @@
                   {"type": "input-text", "name": "roleKey", "label": "权限字符", "required": true},
                   {"type": "input-number", "name": "roleSort", "label": "显示顺序"},
                   {"type": "select", "name": "status", "label": "状态", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]},
+                  {"type": "select", "name": "dataScope", "label": "数据范围", "options": [{"label": "全部数据", "value": "1"}, {"label": "自定义数据", "value": "2"}, {"label": "本部门数据", "value": "3"}, {"label": "本部门及以下", "value": "4"}, {"label": "仅本人数据", "value": "5"}]},
+                  {"type": "input-tree", "name": "deptIds", "label": "数据权限", "source": "get:/admin-api/system/dept/tree", "labelField": "deptName", "valueField": "deptId", "childrenField": "children", "checkable": true, "multiple": true, "joinValues": false, "extractValue": true, "height": 220, "visibleOn": "${dataScope == '2'}"},
                   {
                     "type": "input-tree",
                     "name": "menuIds",

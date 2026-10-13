@@ -7,6 +7,7 @@ import (
 	"github.com/goravel/framework/facades"
 
 	"github.com/khs1001/goravel-admin/models"
+	"github.com/khs1001/goravel-admin/services"
 	"github.com/khs1001/goravel-admin/support/owl"
 )
 
@@ -35,6 +36,28 @@ func (c *SysUserController) List(ctx http.Context) http.Response {
 		query = query.Where("status", status)
 	}
 
+	if scope := services.NewDataScopeService().Resolve(c.user(ctx)); !scope.Unrestricted {
+		parts := make([]string, 0, 2)
+		args := make([]any, 0, 2)
+		if len(scope.DeptIDs) > 0 {
+			ids := make([]any, len(scope.DeptIDs))
+			for i, deptID := range scope.DeptIDs {
+				ids[i] = deptID
+			}
+			parts = append(parts, "dept_id in ?")
+			args = append(args, ids)
+		}
+		if scope.SelfOnly {
+			parts = append(parts, "user_id = ?")
+			args = append(args, scope.UserID)
+		}
+		if len(parts) == 0 {
+			query = query.Where("1 = 0")
+		} else {
+			query = query.Where(strings.Join(parts, " or "), args...)
+		}
+	}
+
 	var users []models.SysUser
 	var total int64
 	if err := query.OrderByDesc("user_id").Paginate(page, perPage, &users, &total); err != nil {
@@ -42,6 +65,7 @@ func (c *SysUserController) List(ctx http.Context) http.Response {
 	}
 
 	c.attachRoleIDs(users)
+	c.attachPostIDs(users)
 
 	return ctx.Response().Json(http.StatusOK, owl.Success(http.Json{"items": users, "total": total}))
 }
@@ -59,6 +83,7 @@ func (c *SysUserController) Get(ctx http.Context) http.Response {
 
 	users := []models.SysUser{user}
 	c.attachRoleIDs(users)
+	c.attachPostIDs(users)
 
 	return ctx.Response().Json(http.StatusOK, owl.Success(users[0]))
 }
@@ -84,6 +109,7 @@ func (c *SysUserController) Add(ctx http.Context) http.Response {
 	}
 
 	user := models.SysUser{
+		DeptID:      uint(ctx.Request().InputInt("deptId")),
 		UserName:    userName,
 		NickName:    ctx.Request().Input("nickName"),
 		Email:       ctx.Request().Input("email"),
@@ -99,6 +125,7 @@ func (c *SysUserController) Add(ctx http.Context) http.Response {
 	}
 
 	c.assignRoles(user.UserID, ctx.Request().InputArray("roleIds"))
+	c.assignPosts(user.UserID, ctx.Request().InputArray("postIds"))
 
 	return ctx.Response().Json(http.StatusOK, owl.Success(nil, "新增成功"))
 }
@@ -117,6 +144,7 @@ func (c *SysUserController) Edit(ctx http.Context) http.Response {
 	user.NickName = ctx.Request().Input("nickName")
 	user.Email = ctx.Request().Input("email")
 	user.Phonenumber = ctx.Request().Input("phonenumber")
+	user.DeptID = uint(ctx.Request().InputInt("deptId"))
 	if sex := ctx.Request().Input("sex"); sex != "" {
 		user.Sex = sex
 	}
@@ -136,6 +164,7 @@ func (c *SysUserController) Edit(ctx http.Context) http.Response {
 	}
 
 	c.assignRoles(user.UserID, ctx.Request().InputArray("roleIds"))
+	c.assignPosts(user.UserID, ctx.Request().InputArray("postIds"))
 
 	return ctx.Response().Json(http.StatusOK, owl.Success(nil, "修改成功"))
 }
@@ -213,5 +242,45 @@ func (c *SysUserController) assignRoles(userID uint, roleIDs []string) {
 			continue
 		}
 		_ = facades.Orm().Query().Create(&models.SysUserRole{UserID: userID, RoleID: roleID})
+	}
+}
+
+func (c *SysUserController) attachPostIDs(users []models.SysUser) {
+	if len(users) == 0 {
+		return
+	}
+
+	ids := make([]any, len(users))
+	index := make(map[uint]int, len(users))
+	for i := range users {
+		ids[i] = users[i].UserID
+		index[users[i].UserID] = i
+	}
+
+	var bindings []models.SysUserPost
+	if err := facades.Orm().Query().WhereIn("user_id", ids).Get(&bindings); err != nil {
+		return
+	}
+
+	for _, binding := range bindings {
+		i, ok := index[binding.UserID]
+		if !ok {
+			continue
+		}
+		users[i].PostIDs = append(users[i].PostIDs, binding.PostID)
+	}
+}
+
+func (c *SysUserController) assignPosts(userID uint, postIDs []string) {
+	if _, err := facades.Orm().Query().Where("user_id", userID).Delete(&models.SysUserPost{}); err != nil {
+		return
+	}
+
+	for _, raw := range postIDs {
+		postID := parseUint(raw)
+		if postID == 0 {
+			continue
+		}
+		_ = facades.Orm().Query().Create(&models.SysUserPost{UserID: userID, PostID: postID})
 	}
 }

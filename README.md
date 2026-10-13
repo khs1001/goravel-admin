@@ -27,14 +27,17 @@
 |---|---|
 | 登录 / 退出 / 验证码 | JWT（复用宿主 `config/jwt.go`），`base64Captcha` 图形验证码（默认开启） |
 | 当前用户 / 动态菜单 | `/current-user`、`/menus`（按角色→菜单权限过滤） |
-| 用户管理 | `sys_user` + `sys_user_role` CRUD |
-| 角色管理 | `sys_role` + `sys_role_menu` CRUD，菜单权限树分配 |
+| 用户管理 | `sys_user` + `sys_user_role` + `sys_user_post` CRUD，部门/岗位/角色分配 |
+| 角色管理 | `sys_role` + `sys_role_menu` + `sys_role_dept` CRUD，菜单权限树 + 数据范围 |
 | 菜单管理 | `sys_menu` 树 CRUD（M/C/F + perms） |
-| 系统设置 | `sys_config` 持久化 Owl 的 `/_settings`（主题、语言等） |
+| 部门管理 | `sys_dept` 树 CRUD（组织架构） |
+| 岗位管理 | `sys_post` CRUD |
+| 字典管理 | `sys_dict_type` + `sys_dict_data` CRUD |
+| 参数设置 | `sys_config` CRUD（同时承载 Owl `/_settings` 的持久化） |
+| 数据权限 | 角色 `data_scope`（全部/自定义/本部门/本部门及以下/仅本人），作用于用户与部门列表 |
 | 后台命令 | `admin:create-user`、`admin:reset-password` |
 
-暂不包含（后续迭代）：部门/岗位/字典/参数/公告、操作/登录日志、数据权限（data_scope）、
-定时任务、代码生成器、文件上传、个人设置页。
+暂不包含（后续迭代）：通知公告、操作/登录日志、定时任务、代码生成器、文件上传、个人设置页。
 
 ## 安装
 
@@ -153,9 +156,9 @@ goravel-admin/
 ├── admin.go / service_provider.go   # 主服务与运行时接线
 ├── contracts/ facades/ config/ setup/
 ├── routes/admin.go                  # API + SPA + 静态资源
-├── models/                          # sys_user/sys_role/sys_menu/sys_user_role/sys_role_menu/sys_config
+├── models/                          # sys_user/sys_role/sys_menu/sys_dept/sys_post/sys_dict_*/sys_config 等
 ├── http/{controllers,middleware}/
-├── services/                        # menu（权限）、config（设置）
+├── services/                        # menu（权限）、config（设置）、data_scope（数据权限）
 ├── support/{owl,captcha,current}/   # Owl 适配、验证码、请求上下文用户
 ├── resources/pages/*.json           # 内嵌 amis 页面
 ├── database/{migrations,seeders}/

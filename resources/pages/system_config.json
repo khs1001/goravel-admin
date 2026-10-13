@@ -1,0 +1,85 @@
+{
+  "type": "page",
+  "title": "参数设置",
+  "body": {
+    "type": "crud",
+    "api": "get:/admin-api/system/config/list",
+    "filterTogglable": true,
+    "filter": {
+      "title": "查询条件",
+      "body": [
+        {"type": "input-text", "name": "configName", "label": "参数名称", "size": "md", "clearable": true},
+        {"type": "input-text", "name": "configKey", "label": "参数键名", "size": "md", "clearable": true}
+      ]
+    },
+    "headerToolbar": [
+      {
+        "type": "button",
+        "label": "新增",
+        "level": "primary",
+        "actionType": "dialog",
+        "dialog": {
+          "title": "新增参数",
+          "size": "lg",
+          "body": {
+            "type": "form",
+            "api": "post:/admin-api/system/config",
+            "body": [
+              {"type": "input-text", "name": "configName", "label": "参数名称", "required": true},
+              {"type": "input-text", "name": "configKey", "label": "参数键名", "required": true},
+              {"type": "input-text", "name": "configValue", "label": "参数键值"},
+              {"type": "select", "name": "configType", "label": "系统内置", "value": "N", "options": [{"label": "是", "value": "Y"}, {"label": "否", "value": "N"}]},
+              {"type": "textarea", "name": "remark", "label": "备注"}
+            ]
+          }
+        }
+      },
+      {"type": "reload", "align": "right"}
+    ],
+    "columns": [
+      {"name": "configId", "label": "ID", "width": 80},
+      {"name": "configName", "label": "参数名称"},
+      {"name": "configKey", "label": "参数键名"},
+      {"name": "configValue", "label": "参数键值"},
+      {"name": "configType", "label": "系统内置", "type": "mapping", "map": {"Y": "是", "N": "否"}},
+      {
+        "type": "operation",
+        "label": "操作",
+        "buttons": [
+          {
+            "type": "button",
+            "label": "编辑",
+            "level": "link",
+            "actionType": "dialog",
+            "dialog": {
+              "title": "编辑参数",
+              "size": "lg",
+              "body": {
+                "type": "form",
+                "api": "put:/admin-api/system/config",
+                "initApi": "get:/admin-api/system/config/${configId}",
+                "body": [
+                  {"type": "hidden", "name": "configId"},
+                  {"type": "input-text", "name": "configName", "label": "参数名称", "required": true},
+                  {"type": "input-text", "name": "configKey", "label": "参数键名", "required": true},
+                  {"type": "input-text", "name": "configValue", "label": "参数键值"},
+                  {"type": "select", "name": "configType", "label": "系统内置", "options": [{"label": "是", "value": "Y"}, {"label": "否", "value": "N"}]},
+                  {"type": "textarea", "name": "remark", "label": "备注"}
+                ]
+              }
+            }
+          },
+          {
+            "type": "button",
+            "label": "删除",
+            "level": "link",
+            "className": "text-danger",
+            "actionType": "ajax",
+            "confirmText": "确认删除该参数？",
+            "api": "delete:/admin-api/system/config/${configId}"
+          }
+        ]
+      }
+    ]
+  }
+}
