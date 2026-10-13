@@ -1,0 +1,77 @@
+{
+  "type": "page",
+  "title": "操作日志",
+  "body": {
+    "type": "crud",
+    "api": "get:/admin-api/system/operlog/list",
+    "filterTogglable": true,
+    "filter": {
+      "title": "查询条件",
+      "body": [
+        {"type": "input-text", "name": "title", "label": "操作模块", "size": "md", "clearable": true},
+        {"type": "input-text", "name": "operName", "label": "操作人员", "size": "md", "clearable": true},
+        {"type": "select", "name": "status", "label": "状态", "size": "md", "clearable": true, "options": [{"label": "正常", "value": "0"}, {"label": "异常", "value": "1"}]}
+      ]
+    },
+    "headerToolbar": [
+      {
+        "type": "button",
+        "label": "清空",
+        "level": "danger",
+        "actionType": "ajax",
+        "confirmText": "确认清空所有操作日志？",
+        "api": "delete:/admin-api/system/operlog/clean"
+      },
+      {"type": "reload", "align": "right"}
+    ],
+    "columns": [
+      {"name": "operId", "label": "ID", "width": 80},
+      {"name": "title", "label": "操作模块"},
+      {"name": "businessType", "label": "类型", "width": 80, "type": "mapping", "map": {"0": "其它", "1": "新增", "2": "修改", "3": "删除", "9": "清空"}},
+      {"name": "requestMethod", "label": "请求方式", "width": 90},
+      {"name": "operName", "label": "操作人员"},
+      {"name": "operIp", "label": "主机"},
+      {"name": "status", "label": "状态", "width": 80, "type": "mapping", "map": {"0": "正常", "1": "异常"}},
+      {"name": "operTime", "label": "操作时间", "type": "datetime"},
+      {"name": "costTime", "label": "耗时(ms)", "width": 90},
+      {
+        "type": "operation",
+        "label": "操作",
+        "buttons": [
+          {
+            "type": "button",
+            "label": "详情",
+            "level": "link",
+            "actionType": "dialog",
+            "dialog": {
+              "title": "操作详情",
+              "size": "lg",
+              "body": {
+                "type": "form",
+                "mode": "horizontal",
+                "initApi": "get:/admin-api/system/operlog/${operId}",
+                "body": [
+                  {"type": "static", "name": "title", "label": "操作模块"},
+                  {"type": "static", "name": "operName", "label": "操作人员"},
+                  {"type": "static", "name": "operUrl", "label": "请求地址"},
+                  {"type": "static", "name": "operIp", "label": "主机"},
+                  {"type": "static", "name": "operParam", "label": "请求参数"},
+                  {"type": "static", "name": "errorMsg", "label": "异常信息"}
+                ]
+              }
+            }
+          },
+          {
+            "type": "button",
+            "label": "删除",
+            "level": "link",
+            "className": "text-danger",
+            "actionType": "ajax",
+            "confirmText": "确认删除该日志？",
+            "api": "delete:/admin-api/system/operlog/${operId}"
+          }
+        ]
+      }
+    ]
+  }
+}

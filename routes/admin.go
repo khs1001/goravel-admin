@@ -43,6 +43,8 @@ func Admin(router route.Route) {
 	dictController := controllers.NewSysDictController()
 	configController := controllers.NewSysConfigController()
 	uploadController := controllers.NewUploadController()
+	operLogController := controllers.NewSysOperLogController()
+	loginLogController := controllers.NewSysLogininforController()
 
 	router.Prefix(prefix).Group(func(router route.Router) {
 		// Public endpoints.
@@ -53,7 +55,7 @@ func Admin(router route.Route) {
 		router.Post("/_settings", indexController.SaveSettings)
 
 		// Authenticated endpoints.
-		router.Middleware(&middleware.Authenticate{}).Group(func(router route.Router) {
+		router.Middleware(&middleware.Authenticate{}, &middleware.OperLog{}).Group(func(router route.Router) {
 			router.Get("/current-user", authController.CurrentUser)
 			router.Get("/menus", indexController.Menus)
 			router.Get("/page_schema", indexController.PageSchema)
@@ -130,6 +132,17 @@ func Admin(router route.Route) {
 				router.Post("/config", configController.Add)
 				router.Put("/config", configController.Edit)
 				router.Delete("/config/{id}", configController.Remove)
+
+				// Operation log (sys_oper_log).
+				router.Get("/operlog/list", operLogController.List)
+				router.Get("/operlog/{id}", operLogController.Get)
+				router.Delete("/operlog/clean", operLogController.Clean)
+				router.Delete("/operlog/{id}", operLogController.Remove)
+
+				// Login log (sys_logininfor).
+				router.Get("/logininfor/list", loginLogController.List)
+				router.Delete("/logininfor/clean", loginLogController.Clean)
+				router.Delete("/logininfor/{id}", loginLogController.Remove)
 			})
 		})
 	})

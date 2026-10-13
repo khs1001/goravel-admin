@@ -78,6 +78,7 @@ func (r *ServiceProvider) Boot(app foundation.Application) {
 		schemaInstance.Register([]schema.Migration{
 			&migrations.CreateSysTables{},
 			&migrations.CreateSysSystemTables{},
+			&migrations.CreateSysLogTables{},
 		})
 	}
 

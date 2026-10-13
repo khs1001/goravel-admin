@@ -1,0 +1,53 @@
+{
+  "type": "page",
+  "title": "登录日志",
+  "body": {
+    "type": "crud",
+    "api": "get:/admin-api/system/logininfor/list",
+    "filterTogglable": true,
+    "filter": {
+      "title": "查询条件",
+      "body": [
+        {"type": "input-text", "name": "userName", "label": "用户名称", "size": "md", "clearable": true},
+        {"type": "input-text", "name": "ipaddr", "label": "登录地址", "size": "md", "clearable": true},
+        {"type": "select", "name": "status", "label": "状态", "size": "md", "clearable": true, "options": [{"label": "成功", "value": "0"}, {"label": "失败", "value": "1"}]}
+      ]
+    },
+    "headerToolbar": [
+      {
+        "type": "button",
+        "label": "清空",
+        "level": "danger",
+        "actionType": "ajax",
+        "confirmText": "确认清空所有登录日志？",
+        "api": "delete:/admin-api/system/logininfor/clean"
+      },
+      {"type": "reload", "align": "right"}
+    ],
+    "columns": [
+      {"name": "infoId", "label": "ID", "width": 80},
+      {"name": "userName", "label": "用户名称"},
+      {"name": "ipaddr", "label": "登录地址"},
+      {"name": "browser", "label": "浏览器"},
+      {"name": "os", "label": "操作系统"},
+      {"name": "status", "label": "状态", "width": 80, "type": "mapping", "map": {"0": "成功", "1": "失败"}},
+      {"name": "msg", "label": "操作信息"},
+      {"name": "loginTime", "label": "登录时间", "type": "datetime"},
+      {
+        "type": "operation",
+        "label": "操作",
+        "buttons": [
+          {
+            "type": "button",
+            "label": "删除",
+            "level": "link",
+            "className": "text-danger",
+            "actionType": "ajax",
+            "confirmText": "确认删除该日志？",
+            "api": "delete:/admin-api/system/logininfor/${infoId}"
+          }
+        ]
+      }
+    ]
+  }
+}

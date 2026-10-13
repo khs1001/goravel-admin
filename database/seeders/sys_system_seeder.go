@@ -31,7 +31,92 @@ func (s *SysSystemSeeder) Run() error {
 		return err
 	}
 
-	return s.seedMenus()
+	if err := s.seedMenus(); err != nil {
+		return err
+	}
+
+	return s.seedLogMenus()
+}
+
+// seedLogMenus adds the log-management menus (idempotent).
+func (s *SysSystemSeeder) seedLogMenus() error {
+	existing, err := facades.Orm().Query().Model(&models.SysMenu{}).Where("perms", "monitor:operlog:list").Count()
+	if err != nil {
+		return err
+	}
+	if existing > 0 {
+		return nil
+	}
+
+	create := func(menu models.SysMenu) (uint, error) {
+		if err := facades.Orm().Query().Create(&menu); err != nil {
+			return 0, err
+		}
+
+		return menu.MenuID, nil
+	}
+
+	dirID, err := create(models.SysMenu{
+		MenuName: "日志管理", ParentID: 0, OrderNum: 3,
+		Path: "/log", MenuType: models.MenuTypeDir,
+		Icon: "mdi:file-document-outline", Visible: "0", Status: "0",
+	})
+	if err != nil {
+		return err
+	}
+	_ = facades.Orm().Query().Create(&models.SysRoleMenu{RoleID: 1, MenuID: dirID})
+
+	resources := []struct {
+		name      string
+		path      string
+		component string
+		perm      string
+		icon      string
+		order     int
+		buttons   []struct{ name, perm string }
+	}{
+		{
+			name: "操作日志", path: "/system/operlog", component: "system_oper_log",
+			perm: "monitor:operlog:list", icon: "mdi:history", order: 1,
+			buttons: []struct{ name, perm string }{
+				{"操作查询", "monitor:operlog:query"},
+				{"操作删除", "monitor:operlog:remove"},
+			},
+		},
+		{
+			name: "登录日志", path: "/system/logininfor", component: "system_login_log",
+			perm: "monitor:logininfor:list", icon: "mdi:login-variant", order: 2,
+			buttons: []struct{ name, perm string }{
+				{"登录查询", "monitor:logininfor:query"},
+				{"登录删除", "monitor:logininfor:remove"},
+			},
+		},
+	}
+
+	for _, resource := range resources {
+		menuID, err := create(models.SysMenu{
+			MenuName: resource.name, ParentID: dirID, OrderNum: resource.order,
+			Path: resource.path, Component: resource.component, Perms: resource.perm,
+			MenuType: models.MenuTypeMenu, Icon: resource.icon, Visible: "0", Status: "0",
+		})
+		if err != nil {
+			return err
+		}
+		_ = facades.Orm().Query().Create(&models.SysRoleMenu{RoleID: 1, MenuID: menuID})
+
+		for i, button := range resource.buttons {
+			buttonID, err := create(models.SysMenu{
+				MenuName: button.name, ParentID: menuID, OrderNum: i + 1,
+				Perms: button.perm, MenuType: models.MenuTypeButton, Visible: "0", Status: "0",
+			})
+			if err != nil {
+				return err
+			}
+			_ = facades.Orm().Query().Create(&models.SysRoleMenu{RoleID: 1, MenuID: buttonID})
+		}
+	}
+
+	return nil
 }
 
 func (s *SysSystemSeeder) seedDept() error {

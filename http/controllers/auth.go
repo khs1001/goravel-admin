@@ -25,42 +25,50 @@ func NewAuthController() *AuthController {
 
 // Login authenticates an admin user and returns a JWT.
 func (c *AuthController) Login(ctx http.Context) http.Response {
+	username := ctx.Request().Input("username")
+	password := ctx.Request().Input("password")
+
+	fail := func(msg string) http.Response {
+		c.recordLogin(ctx, username, 1, msg)
+		return ctx.Response().Json(http.StatusOK, owl.Fail(msg))
+	}
+
 	if facades.Config().GetBool("admin.auth.login_captcha", true) {
 		sysCaptcha := ctx.Request().Input("sys_captcha")
 		code := ctx.Request().Input("captcha")
 		if sysCaptcha == "" || code == "" {
-			return ctx.Response().Json(http.StatusOK, owl.Fail("请输入验证码"))
+			return fail("请输入验证码")
 		}
 		if !captcha.Verify(sysCaptcha, code) {
-			return ctx.Response().Json(http.StatusOK, owl.Fail("验证码错误"))
+			return fail("验证码错误")
 		}
 	}
 
-	username := ctx.Request().Input("username")
-	password := ctx.Request().Input("password")
 	if username == "" || password == "" {
-		return ctx.Response().Json(http.StatusOK, owl.Fail("请输入用户名和密码"))
+		return fail("请输入用户名和密码")
 	}
 
 	var user models.SysUser
 	if err := facades.Orm().Query().Where("user_name", username).Where("del_flag", "0").First(&user); err != nil {
-		return ctx.Response().Json(http.StatusOK, owl.Fail("用户名或密码错误"))
+		return fail("用户名或密码错误")
 	}
 	if user.Status == "1" {
-		return ctx.Response().Json(http.StatusOK, owl.Fail("账号已被停用"))
+		return fail("账号已被停用")
 	}
 	if !facades.Hash().Check(password, user.Password) {
-		return ctx.Response().Json(http.StatusOK, owl.Fail("用户名或密码错误"))
+		return fail("用户名或密码错误")
 	}
 
 	token, err := facades.Auth(ctx).Guard("admin").Login(&user)
 	if err != nil {
-		return ctx.Response().Json(http.StatusOK, owl.Fail(err.Error()))
+		return fail(err.Error())
 	}
 
 	user.LoginIP = ctx.Request().Ip()
 	user.LoginDate = carbon.NewDateTime(carbon.Now())
 	_ = facades.Orm().Query().Save(&user)
+
+	c.recordLogin(ctx, username, 0, "登录成功")
 
 	return ctx.Response().Json(http.StatusOK, owl.Success(http.Json{"token": token}, "登录成功"))
 }
@@ -68,7 +76,26 @@ func (c *AuthController) Login(ctx http.Context) http.Response {
 // Logout is a best-effort, stateless operation: JWT tokens are not revoked
 // server-side in v1.
 func (c *AuthController) Logout(ctx http.Context) http.Response {
+	if user := current.User(ctx); user != nil {
+		c.recordLogin(ctx, user.UserName, 0, "退出成功")
+	}
+
 	return ctx.Response().Json(http.StatusOK, owl.Success(nil, "已退出登录"))
+}
+
+// recordLogin writes a `sys_logininfor` entry (status 0 success, 1 failure).
+func (c *AuthController) recordLogin(ctx http.Context, username string, status int, msg string) {
+	browser, osName := services.ClientInfo(ctx.Request().Header("User-Agent"))
+
+	services.NewLogService().Login(models.SysLogininfor{
+		UserName:  username,
+		Ipaddr:    ctx.Request().Ip(),
+		Browser:   browser,
+		Os:        osName,
+		Status:    status,
+		Msg:       msg,
+		LoginTime: carbon.NewDateTime(carbon.Now()),
+	})
 }
 
 // Captcha returns a fresh image captcha.
