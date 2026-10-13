@@ -38,18 +38,40 @@
 
 ## 安装
 
-```shell
-# 远程包
-./artisan package:install github.com/khs1001/goravel-admin
+### 已发布的包
 
-# 本地包（以 ./ 或相对路径开头）
-./artisan package:install ../goravel-admin
+```shell
+./artisan package:install github.com/khs1001/goravel-admin
 ```
 
-安装会：
+安装器会：
 
-1. 在 `bootstrap/providers.go` 注册 `&admin.ServiceProvider{}`；
-2. 把包内 `config/admin.go` 模板发布到宿主 `config/admin.go`。
+1. `go get` 该包；
+2. 运行包内 `setup/setup.go`：在 `bootstrap/providers.go` 注册
+   `&admin.ServiceProvider{}`（非 bootstrap 脚手架则写入 `app.go`）；
+3. 把包内 `config/admin.go` 模板发布到宿主 `config/admin.go`；
+4. `go mod tidy`。
+
+### 本地开发（go.work）
+
+包与宿主放在同一个 `go.work` 里时，宿主 `require` 一个**真实存在的版本**
+（工作区会把源码指向本地目录，无需 `replace`）：
+
+```shell
+# go.work
+use (
+    ./goravel
+    ./goravel-admin
+)
+```
+
+```go
+// goravel/go.mod —— 版本只需真实存在，实际源码由 go.work 覆盖
+require github.com/khs1001/goravel-admin v0.1.14
+```
+
+然后照常执行 `./artisan package:install github.com/khs1001/goravel-admin`。
+（`package:install` 只接受模块路径，不支持 `./relative` 路径。）
 
 宿主需先具备：`Auth`（JWT）、`Orm`、`Schema`、`Seeder`、`Route`、`Cache`、`Hash`。
 `admin` 守卫（`auth.guards.admin` / `auth.providers.admin`）由包在运行时按需注入，
@@ -68,6 +90,24 @@
 - 后台入口：`/admin`
 - 接口前缀：`/admin-api`
 - 静态资源：`/admin-assets`
+
+## 前端（admin-views）
+
+仓库内的 `admin-views/` 是 Owl Admin 前端（React + amis 6.13），已构建产物位于
+`admin-views/dist`，由包在运行时托管，无需宿主额外配置。
+
+重新构建：
+
+```shell
+cd admin-views
+pnpm install
+pnpm build      # 产物输出到 dist/（base=/admin-assets、接口前缀 /admin-api）
+```
+
+约定（与已构建产物一致）：SPA 入口 `/admin`（HashRouter，无需服务端 SPA 回退）、
+接口前缀 `/admin-api`、资源前缀 `/admin-assets`。若要改前缀，需同时调整
+`admin-views/.env` 的 `VITE_BASE_URL` / `VITE_API_PREFIX`、前端 `index.html` 里的
+`window.$adminApiPrefix`，以及 `config/admin.go` 的 `assets` / `route.prefix`。
 
 ## 配置（`config/admin.go`）
 
