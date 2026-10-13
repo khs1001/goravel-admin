@@ -1,0 +1,76 @@
+import {useCallback, useMemo} from 'react'
+import {useSelector} from 'react-redux'
+import {getFlattenRoutes} from '@/routes/helpers'
+import {useHistory} from 'react-router'
+
+export type IRoute = {
+    name: string;
+    breadcrumb?: boolean;
+    children?: IRoute[];
+    // 当前路由是否渲染菜单项，为 true 的话不会在菜单中显示，但可通过路由地址访问。
+    ignore?: boolean;
+    // 路由地址
+    path?: string;
+    is_link?: boolean;
+    // 路由组件
+    component?: string;
+    meta?: {
+        // 菜单图标
+        icon?: string;
+        // 菜单标题
+        title?: string;
+        // 菜单是否隐藏
+        hide?: boolean;
+    }
+};
+
+// 静态路由
+export const staticRoutes: IRoute[] = [
+    // {
+    //     name: "menu.dashboard",
+    //     meta: {
+    //         icon: "dashboard",
+    //         title: "控制台",
+    //     },
+    //     children: [
+    //         {
+    //             name: "menu.dashboard.workplace",
+    //             path: "/dashboard/workplace",
+    //             component: "dashboard/workplace",
+    //             meta: {
+    //                 title: "工作台",
+    //             }
+    //         },
+    //     ],
+    // },
+]
+
+// 动态路由
+const useRoute = () => {
+    const {routes} = useSelector((state: GlobalState) => state)
+    const history = useHistory()
+    const pathname = history.location.pathname
+
+    // 默认路由
+    const defaultRoute = useMemo(() => {
+        const first = routes.find(r => r.is_home == 1) || routes[0]
+        if (first) {
+            const _path = first?.children?.[0]?.path || first.path
+
+            return _path?.replace(/^\//, '')
+        }
+        return ''
+    }, [routes])
+
+    const flattenRoutes = useMemo(() => getFlattenRoutes(routes), [routes])
+
+    // 获取当前路由
+    const getCurrentRoute = useCallback(
+        () => flattenRoutes.find((tab) => tab.path.split('?')[0] === pathname.replace(/\/\d+/g, '/:id')),
+        [flattenRoutes, pathname]
+    )
+
+    return {routes, defaultRoute, getCurrentRoute}
+}
+
+export default useRoute
