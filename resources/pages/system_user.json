@@ -1,0 +1,108 @@
+{
+  "type": "page",
+  "title": "用户管理",
+  "body": {
+    "type": "crud",
+    "api": "get:/admin-api/system/user/list",
+    "filterTogglable": true,
+    "filter": {
+      "title": "查询条件",
+      "body": [
+        {
+          "type": "input-text",
+          "name": "userName",
+          "label": "用户名",
+          "size": "md",
+          "clearable": true
+        },
+        {
+          "type": "select",
+          "name": "status",
+          "label": "状态",
+          "size": "md",
+          "clearable": true,
+          "options": [
+            {"label": "正常", "value": "0"},
+            {"label": "停用", "value": "1"}
+          ]
+        }
+      ]
+    },
+    "headerToolbar": [
+      {
+        "type": "button",
+        "label": "新增",
+        "level": "primary",
+        "actionType": "dialog",
+        "dialog": {
+          "title": "新增用户",
+          "size": "lg",
+          "body": {
+            "type": "form",
+            "api": "post:/admin-api/system/user",
+            "body": [
+              {"type": "input-text", "name": "userName", "label": "用户名", "required": true},
+              {"type": "input-text", "name": "nickName", "label": "昵称", "required": true},
+              {"type": "input-text", "name": "password", "label": "密码", "type": "input-password", "placeholder": "留空默认 123456"},
+              {"type": "input-text", "name": "email", "label": "邮箱"},
+              {"type": "input-text", "name": "phonenumber", "label": "手机号"},
+              {"type": "select", "name": "sex", "label": "性别", "value": "0", "options": [{"label": "男", "value": "0"}, {"label": "女", "value": "1"}]},
+              {"type": "select", "name": "status", "label": "状态", "value": "0", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]},
+              {"type": "select", "name": "roleIds", "label": "角色", "multiple": true, "source": "get:/admin-api/system/user/roleOptions"}
+            ]
+          }
+        }
+      },
+      {"type": "reload", "align": "right"}
+    ],
+    "columns": [
+      {"name": "userId", "label": "ID", "width": 80},
+      {"name": "userName", "label": "用户名"},
+      {"name": "nickName", "label": "昵称"},
+      {"name": "email", "label": "邮箱"},
+      {"name": "phonenumber", "label": "手机号"},
+      {"name": "status", "label": "状态", "type": "mapping", "map": {"0": "正常", "1": "停用"}},
+      {
+        "type": "operation",
+        "label": "操作",
+        "buttons": [
+          {
+            "type": "button",
+            "label": "编辑",
+            "level": "link",
+            "actionType": "dialog",
+            "dialog": {
+              "title": "编辑用户",
+              "size": "lg",
+              "body": {
+                "type": "form",
+                "api": "put:/admin-api/system/user",
+                "initApi": "get:/admin-api/system/user/${userId}",
+                "body": [
+                  {"type": "hidden", "name": "userId"},
+                  {"type": "input-text", "name": "userName", "label": "用户名", "disabled": true},
+                  {"type": "input-text", "name": "nickName", "label": "昵称"},
+                  {"type": "input-text", "name": "password", "label": "密码", "type": "input-password", "placeholder": "留空不修改"},
+                  {"type": "input-text", "name": "email", "label": "邮箱"},
+                  {"type": "input-text", "name": "phonenumber", "label": "手机号"},
+                  {"type": "select", "name": "sex", "label": "性别", "options": [{"label": "男", "value": "0"}, {"label": "女", "value": "1"}]},
+                  {"type": "select", "name": "status", "label": "状态", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]},
+                  {"type": "select", "name": "roleIds", "label": "角色", "multiple": true, "source": "get:/admin-api/system/user/roleOptions"}
+                ]
+              }
+            }
+          },
+          {
+            "type": "button",
+            "label": "删除",
+            "level": "link",
+            "className": "text-danger",
+            "actionType": "ajax",
+            "confirmText": "确认删除该用户？",
+            "api": "delete:/admin-api/system/user/${userId}"
+          }
+        ]
+      }
+    ]
+  }
+}

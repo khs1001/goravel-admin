@@ -1,0 +1,22 @@
+{
+  "type": "page",
+  "title": "首页",
+  "className": "page-dashboard",
+  "body": {
+    "type": "wrapper",
+    "className": "p-6",
+    "body": [
+      {
+        "type": "tpl",
+        "tpl": "<h2 style='margin:0 0 8px'>欢迎使用 Goravel Admin</h2><p style='color:#888'>对标 RuoYi 的 Goravel 后台扩展包：RuoYi 数据模型 + Owl Admin 接口契约。</p>"
+      },
+      {
+        "type": "divider"
+      },
+      {
+        "type": "tpl",
+        "tpl": "<p>左侧菜单来自 <code>sys_menu</code>，权限标识使用 <code>模块:功能:操作</code>（如 <code>system:user:add</code>）。</p>"
+      }
+    ]
+  }
+}

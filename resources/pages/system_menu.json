@@ -1,0 +1,95 @@
+{
+  "type": "page",
+  "title": "菜单管理",
+  "body": {
+    "type": "crud",
+    "api": "get:/admin-api/system/menu/list",
+    "syncLocation": false,
+    "childrenColumnName": "children",
+    "headerToolbar": [
+      {
+        "type": "button",
+        "label": "新增",
+        "level": "primary",
+        "actionType": "dialog",
+        "dialog": {
+          "title": "新增菜单",
+          "size": "lg",
+          "body": {
+            "type": "form",
+            "api": "post:/admin-api/system/menu",
+            "body": [
+              {"type": "input-text", "name": "menuName", "label": "菜单名称", "required": true},
+              {"type": "select", "name": "menuType", "label": "菜单类型", "value": "C", "options": [{"label": "目录", "value": "M"}, {"label": "菜单", "value": "C"}, {"label": "按钮", "value": "F"}]},
+              {"type": "input-text", "name": "parentId", "label": "上级ID", "value": 0, "description": "顶级为 0"},
+              {"type": "input-number", "name": "orderNum", "label": "显示顺序", "value": 1},
+              {"type": "input-text", "name": "path", "label": "路由地址", "placeholder": "如 /system/user"},
+              {"type": "input-text", "name": "component", "label": "页面标识(sign)", "placeholder": "如 system_user"},
+              {"type": "input-text", "name": "perms", "label": "权限标识", "placeholder": "如 system:user:list"},
+              {"type": "input-text", "name": "icon", "label": "图标"},
+              {"type": "select", "name": "isFrame", "label": "是否外链", "value": 1, "options": [{"label": "是", "value": 0}, {"label": "否", "value": 1}]},
+              {"type": "select", "name": "isCache", "label": "是否缓存", "value": 0, "options": [{"label": "缓存", "value": 0}, {"label": "不缓存", "value": 1}]},
+              {"type": "select", "name": "visible", "label": "显示状态", "value": "0", "options": [{"label": "显示", "value": "0"}, {"label": "隐藏", "value": "1"}]},
+              {"type": "select", "name": "status", "label": "菜单状态", "value": "0", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]}
+            ]
+          }
+        }
+      },
+      {"type": "reload", "align": "right"}
+    ],
+    "columns": [
+      {"name": "menuName", "label": "菜单名称"},
+      {"name": "menuType", "label": "类型", "width": 80, "type": "mapping", "map": {"M": "目录", "C": "菜单", "F": "按钮"}},
+      {"name": "path", "label": "路由地址"},
+      {"name": "component", "label": "页面标识"},
+      {"name": "perms", "label": "权限标识"},
+      {"name": "orderNum", "label": "顺序", "width": 80},
+      {"name": "status", "label": "状态", "type": "mapping", "map": {"0": "正常", "1": "停用"}},
+      {
+        "type": "operation",
+        "label": "操作",
+        "buttons": [
+          {
+            "type": "button",
+            "label": "编辑",
+            "level": "link",
+            "actionType": "dialog",
+            "dialog": {
+              "title": "编辑菜单",
+              "size": "lg",
+              "body": {
+                "type": "form",
+                "api": "put:/admin-api/system/menu",
+                "initApi": "get:/admin-api/system/menu/${menuId}",
+                "body": [
+                  {"type": "hidden", "name": "menuId"},
+                  {"type": "input-text", "name": "menuName", "label": "菜单名称", "required": true},
+                  {"type": "select", "name": "menuType", "label": "菜单类型", "options": [{"label": "目录", "value": "M"}, {"label": "菜单", "value": "C"}, {"label": "按钮", "value": "F"}]},
+                  {"type": "input-text", "name": "parentId", "label": "上级ID"},
+                  {"type": "input-number", "name": "orderNum", "label": "显示顺序"},
+                  {"type": "input-text", "name": "path", "label": "路由地址"},
+                  {"type": "input-text", "name": "component", "label": "页面标识(sign)"},
+                  {"type": "input-text", "name": "perms", "label": "权限标识"},
+                  {"type": "input-text", "name": "icon", "label": "图标"},
+                  {"type": "select", "name": "isFrame", "label": "是否外链", "options": [{"label": "是", "value": 0}, {"label": "否", "value": 1}]},
+                  {"type": "select", "name": "isCache", "label": "是否缓存", "options": [{"label": "缓存", "value": 0}, {"label": "不缓存", "value": 1}]},
+                  {"type": "select", "name": "visible", "label": "显示状态", "options": [{"label": "显示", "value": "0"}, {"label": "隐藏", "value": "1"}]},
+                  {"type": "select", "name": "status", "label": "菜单状态", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]}
+                ]
+              }
+            }
+          },
+          {
+            "type": "button",
+            "label": "删除",
+            "level": "link",
+            "className": "text-danger",
+            "actionType": "ajax",
+            "confirmText": "确认删除该菜单？",
+            "api": "delete:/admin-api/system/menu/${menuId}"
+          }
+        ]
+      }
+    ]
+  }
+}

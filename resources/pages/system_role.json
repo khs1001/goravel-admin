@@ -1,0 +1,111 @@
+{
+  "type": "page",
+  "title": "角色管理",
+  "body": {
+    "type": "crud",
+    "api": "get:/admin-api/system/role/list",
+    "filterTogglable": true,
+    "filter": {
+      "title": "查询条件",
+      "body": [
+        {"type": "input-text", "name": "roleName", "label": "角色名称", "size": "md", "clearable": true},
+        {"type": "select", "name": "status", "label": "状态", "size": "md", "clearable": true, "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]}
+      ]
+    },
+    "headerToolbar": [
+      {
+        "type": "button",
+        "label": "新增",
+        "level": "primary",
+        "actionType": "dialog",
+        "dialog": {
+          "title": "新增角色",
+          "size": "lg",
+          "body": {
+            "type": "form",
+            "api": "post:/admin-api/system/role",
+            "body": [
+              {"type": "input-text", "name": "roleName", "label": "角色名称", "required": true},
+              {"type": "input-text", "name": "roleKey", "label": "权限字符", "required": true},
+              {"type": "input-number", "name": "roleSort", "label": "显示顺序", "value": 1},
+              {"type": "select", "name": "status", "label": "状态", "value": "0", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]},
+              {
+                "type": "input-tree",
+                "name": "menuIds",
+                "label": "菜单权限",
+                "source": "get:/admin-api/system/menu/list",
+                "labelField": "menuName",
+                "valueField": "menuId",
+                "childrenField": "children",
+                "checkable": true,
+                "multiple": true,
+                "joinValues": false,
+                "extractValue": true,
+                "height": 300
+              }
+            ]
+          }
+        }
+      },
+      {"type": "reload", "align": "right"}
+    ],
+    "columns": [
+      {"name": "roleId", "label": "ID", "width": 80},
+      {"name": "roleName", "label": "角色名称"},
+      {"name": "roleKey", "label": "权限字符"},
+      {"name": "roleSort", "label": "顺序", "width": 80},
+      {"name": "status", "label": "状态", "type": "mapping", "map": {"0": "正常", "1": "停用"}},
+      {
+        "type": "operation",
+        "label": "操作",
+        "buttons": [
+          {
+            "type": "button",
+            "label": "编辑",
+            "level": "link",
+            "actionType": "dialog",
+            "dialog": {
+              "title": "编辑角色",
+              "size": "lg",
+              "body": {
+                "type": "form",
+                "api": "put:/admin-api/system/role",
+                "initApi": "get:/admin-api/system/role/${roleId}",
+                "body": [
+                  {"type": "hidden", "name": "roleId"},
+                  {"type": "input-text", "name": "roleName", "label": "角色名称", "required": true},
+                  {"type": "input-text", "name": "roleKey", "label": "权限字符", "required": true},
+                  {"type": "input-number", "name": "roleSort", "label": "显示顺序"},
+                  {"type": "select", "name": "status", "label": "状态", "options": [{"label": "正常", "value": "0"}, {"label": "停用", "value": "1"}]},
+                  {
+                    "type": "input-tree",
+                    "name": "menuIds",
+                    "label": "菜单权限",
+                    "source": "get:/admin-api/system/menu/list",
+                    "labelField": "menuName",
+                    "valueField": "menuId",
+                    "childrenField": "children",
+                    "checkable": true,
+                    "multiple": true,
+                    "joinValues": false,
+                    "extractValue": true,
+                    "height": 300
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "type": "button",
+            "label": "删除",
+            "level": "link",
+            "className": "text-danger",
+            "actionType": "ajax",
+            "confirmText": "确认删除该角色？",
+            "api": "delete:/admin-api/system/role/${roleId}"
+          }
+        ]
+      }
+    ]
+  }
+}
